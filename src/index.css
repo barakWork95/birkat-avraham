@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    /* Typography hierarchy — single source of truth (mirrored in tailwind.config.js) */
+    --font-heading: 'Heebo', system-ui, sans-serif; /* ALL headings H1–H4 */
+    --font-family: 'Assistant', system-ui, sans-serif; /* body, UI, buttons, tables */
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* offset for the sticky header when jumping to anchors */
+    scroll-padding-top: 7rem;
+  }
+
+  body {
+    @apply bg-cream text-ink font-body antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
+  }
+
+  ::selection {
+    @apply bg-gold-light/40 text-ink;
+  }
+}
+
+@layer components {
+  /* Decorative gold divider used under section titles */
+  .gold-rule {
+    @apply mx-auto mt-4 h-[3px] w-24 rounded-full;
+    background: linear-gradient(90deg, transparent, #b8860b, #d4af37, #b8860b, transparent);
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-base
+      font-semibold transition-all duration-300 focus:outline-none focus-visible:ring-2
+      focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-cream;
+  }
+
+  .btn-primary {
+    @apply btn bg-gradient-to-l from-gold to-gold-light text-white shadow-gold
+      hover:from-gold-hover hover:to-gold hover:shadow-card-hover hover:-translate-y-0.5;
+  }
+
+  .btn-outline {
+    @apply btn border-2 border-gold/60 text-ink hover:border-gold hover:bg-gold/5;
+  }
+
+  .btn-ghost {
+    @apply btn text-ink/80 hover:text-gold hover:bg-gold/5;
+  }
+
+  .section {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+
+  .card {
+    @apply rounded-2xl bg-white shadow-card ring-1 ring-ink/[0.04] transition-all duration-300;
+  }
+
+  .eyebrow {
+    @apply mb-3 inline-block text-sm font-semibold uppercase tracking-[0.2em] text-gold;
+  }
+}
+
+/* Subtle gold shimmer for the "live" pulse dots */
+.pulse-dot {
+  position: relative;
+}
+.pulse-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.5;
+  animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* Thin, elegant scrollbar for horizontal scrollers */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #d4af37 transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #d4af37;
+  border-radius: 9999px;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,71 @@
+import { useSchedule } from '../hooks/useSchedule'
+import SectionTitle from './ui/SectionTitle'
+import { ClockIcon, PinIcon } from './ui/Icons'
+
+/**
+ * Schedule — tabbed daily schedule (prayers / shiurim / kollel).
+ * Data + active tab come from useSchedule().
+ */
+export default function Schedule() {
+  const { tabs, activeTab, setActiveTab, items } = useSchedule()
+
+  return (
+    <section id="schedule" className="scroll-mt-28 py-16 sm:py-24">
+      <div className="section">
+        <SectionTitle
+          eyebrow='לו"ז יומי'
+          title="שיעורים ותפילות"
+          subtitle="לוח הזמנים המלא של בית המדרש — תפילות, שיעורים וסדרי הכולל."
+        />
+
+        {/* Tabs */}
+        <div className="mb-8 flex justify-center">
+          <div className="inline-flex flex-wrap justify-center gap-1 rounded-2xl bg-white p-1.5 shadow-card ring-1 ring-ink/5">
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setActiveTab(t.key)}
+                className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition-all sm:text-base ${
+                  activeTab === t.key
+                    ? 'bg-gradient-to-l from-gold to-gold-light text-white shadow-gold'
+                    : 'text-ink-muted hover:bg-gold/5 hover:text-ink'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Items */}
+        <div key={activeTab} className="mx-auto grid max-w-4xl gap-3 sm:grid-cols-2">
+          {items.map((item, i) => (
+            <div
+              key={item.id}
+              className="card animate-fade-up flex items-center gap-4 p-4 hover:-translate-y-0.5 hover:shadow-card-hover"
+              style={{ animationDelay: `${i * 0.05}s` }}
+            >
+              {/* Time chip */}
+              <div className="flex shrink-0 flex-col items-center justify-center rounded-xl bg-ink px-3 py-2 text-center text-gold-light">
+                <ClockIcon className="mb-0.5 h-4 w-4 opacity-70" />
+                <span className="whitespace-nowrap font-heading text-sm font-bold leading-none">
+                  {item.time}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate font-bold text-ink">{item.name}</h3>
+                {item.sub && <p className="truncate text-sm text-gold-hover">{item.sub}</p>}
+                {item.location && (
+                  <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-muted">
+                    <PinIcon className="h-3.5 w-3.5" />
+                    {item.location}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
