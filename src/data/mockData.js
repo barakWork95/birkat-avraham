@@ -25,18 +25,28 @@ export const institutionInfo = {
   ravTitle: 'ראש המוסדות',
   mission:
     'מוסדות "ברכת אברהם" הם בית לתורה, לתפילה ולחסד — כולל אברכים העמלים בתורה יומם ולילה, בית כנסת קהילתי חם, ומערך פעילות ענף המחזק את הקהילה כולה. אנו מזמינים אתכם להיות שותפים במפעל של קדושה.',
-  address: 'רחוב הרב קוק 24, פתח תקווה',
-  phone: '03-9000000',
-  whatsapp: '972500000000',
-  email: 'office@birkat-avraham.org.il',
-  wazeUrl: 'https://waze.com/ul?q=הרב%20קוק%2024%20פתח%20תקווה',
-  mapEmbed:
-    'https://www.openstreetmap.org/export/embed.html?bbox=34.87%2C32.08%2C34.90%2C32.10&layer=mapnik&marker=32.09%2C34.885',
-  hours: [
-    { label: 'ימים א׳–ה׳', value: '05:30 – 23:00' },
-    { label: 'יום שישי', value: '05:30 – כניסת שבת' },
-    { label: 'מוצאי שבת', value: 'צאת שבת – 23:30' },
+  address: 'רח\' כובשי החרמון 10 (מעל הבר-כל), רחובות',
+  city: 'רחובות',
+  mapQuery: 'כובשי החרמון 10, רחובות',
+  // Primary contact + all published numbers (from the institution flyer)
+  phone: '050-444-1821',
+  contacts: [
+    { id: 'c1', label: 'בירורים כלליים וזמני תפילות', phone: '050-444-1821' },
+    { id: 'c2', label: 'בירורים כלליים', phone: '052-777-3551' },
+    { id: 'c3', label: 'בית ההוראה', phone: '08-638-4377' },
+    { id: 'c4', label: 'שיעורים והזמנת מו"ר — ר\' אלעד מדמון', phone: '050-444-1821' },
   ],
+  // WhatsApp group for the Rav's shiurim
+  whatsappGroup: 'https://chat.whatsapp.com/CBqj8VBPuVkJHMaECAubXo',
+  // Bank-transfer details for donations
+  bankTransfer: {
+    accountName: 'חנוך לנער עפ"י דרכו',
+    bank: 'בנק מרכנתיל',
+    branch: '740',
+    account: '86098235',
+  },
+  // Nedarim Plus mosad id (used by the donation form / service)
+  nedarimMosadId: '7004283',
 }
 
 /**
@@ -47,7 +57,7 @@ export const zmanimData = {
   hebrewDate: 'כ״ז בתמוז תשפ״ה',
   gregorianDate: '22 ביולי 2025',
   parasha: 'פרשת מטות-מסעי',
-  city: 'פתח תקווה',
+  city: 'רחובות',
   candleLighting: '19:12',
   havdalah: '20:23',
   dafYomi: 'עבודה זרה ל״ד',
@@ -59,30 +69,35 @@ export const zmanimData = {
  */
 export const scheduleData = {
   tabs: [
-    { key: 'shacharit', label: 'תפילות' },
     { key: 'shiurim', label: 'שיעורים' },
-    { key: 'kollel', label: 'סדרי כולל' },
-  ],
-  shacharit: [
-    { id: 'p1', name: 'שחרית — מניין ראשון', time: '06:00', sub: 'ותיקין', location: 'בית המדרש הגדול' },
-    { id: 'p2', name: 'שחרית — מניין שני', time: '07:15', location: 'בית המדרש הגדול' },
-    { id: 'p3', name: 'שחרית — מניין שלישי', time: '08:30', location: 'אולם התפילה' },
-    { id: 'p4', name: 'מנחה', time: '13:30', sub: 'רצופה לאורך היום', location: 'בית המדרש' },
-    { id: 'p5', name: 'מנחה גדולה', time: '18:45', location: 'בית המדרש הגדול' },
-    { id: 'p6', name: 'ערבית', time: '20:00', sub: 'מניינים רצופים עד 23:00', location: 'בית המדרש' },
+    { key: 'kollel', label: 'כולל ערב' },
   ],
   shiurim: [
-    { id: 's1', name: 'דף היומי', time: '05:15', sub: 'הרב דוד דהרי שליט"א', location: 'בית המדרש' },
-    { id: 's2', name: 'הלכה יומית', time: '07:00', sub: 'בין שחרית למניין', location: 'אולם התפילה' },
-    { id: 's3', name: 'שיעור בפרשת השבוע', time: '13:00', sub: 'הרב איתן אברהם שליט"א', location: 'בית המדרש הגדול' },
-    { id: 's4', name: 'שיעור אמונה ומחשבה', time: '19:15', sub: 'לרחבי הקהילה', location: 'אולם האירועים' },
-    { id: 's5', name: 'עין יעקב', time: '21:00', sub: 'אגדות חז"ל', location: 'בית המדרש' },
+    {
+      id: 's1',
+      name: 'השיעור המרכזי — הלכה',
+      time: '20:15',
+      sub: 'ימי רביעי · הרב איתן אברהם שליט"א',
+      location: 'בית המדרש',
+    },
+    {
+      id: 's2',
+      name: 'שיעור מוסר',
+      time: '21:15',
+      sub: 'ימי רביעי · הרב איתן אברהם שליט"א',
+      location: 'בית המדרש',
+    },
+    {
+      id: 's3',
+      name: 'שיעור בזוגיות וחינוך ילדים',
+      time: '21:00',
+      sub: 'ימי ראשון',
+      location: 'בית המדרש',
+    },
   ],
   kollel: [
-    { id: 'k1', name: 'סדר בוקר', time: '09:00 – 13:00', sub: 'עיון בסוגיות הש"ס', location: 'כולל אברכים' },
-    { id: 'k2', name: 'סדר צהריים', time: '15:30 – 18:30', sub: 'בקיאות והלכה', location: 'כולל אברכים' },
-    { id: 'k3', name: 'סדר ערב', time: '20:30 – 22:30', sub: 'חברותות', location: 'בית המדרש' },
-    { id: 'k4', name: 'מבחן חודשי', time: 'ראש חודש', sub: 'סיכום מסכת', location: 'כולל אברכים' },
+    { id: 'k1', name: 'כולל ערב', time: '20:15 – 22:00', sub: 'ימים א׳–ד׳', location: 'בית המדרש' },
+    { id: 'k2', name: 'חברותות', time: '20:15', sub: 'ימים א׳, ב׳, ג׳', location: 'בית המדרש' },
   ],
 }
 
@@ -95,7 +110,7 @@ export const leadershipData = [
     id: 'l1',
     name: 'הרב איתן אברהם שליט"א',
     title: 'ראש מוסדות "ברכת אברהם"',
-    desc: 'מוביל את המוסדות ומעביר את השיעור המרכזי בפרשת השבוע.',
+    desc: 'מוביל את המוסדות ומעביר את השיעור המרכזי.',
     img: null,
     featured: true,
   },
@@ -103,35 +118,21 @@ export const leadershipData = [
     id: 'l2',
     name: 'הרב דוד דהרי שליט"א',
     title: 'סגן הרב ומשגיח הכולל',
-    desc: 'אחראי על סדרי הכולל ומגיד שיעור הדף היומי.',
+    desc: 'אחראי על סדרי הכולל.',
     img: null,
   },
   {
     id: 'l3',
-    name: 'הרב יוסף כהן שליט"א',
-    title: 'רב בית הכנסת',
-    desc: 'מענה הלכתי לקהילה ומעביר שיעורי הלכה יומיים.',
+    name: 'הרב אלעד מדמון',
+    title: 'גבאי',
+    desc: 'איש קשר לשיעורים ולהזמנת מו"ר.',
     img: null,
   },
   {
     id: 'l4',
-    name: 'ר׳ משה לוי הי"ו',
-    title: 'מנהל אדמיניסטרטיבי',
-    desc: 'ניהול שוטף, אירועים וקשרי קהילה.',
-    img: null,
-  },
-  {
-    id: 'l5',
-    name: 'ר׳ אליהו נחום הי"ו',
-    title: 'גבאי בית הכנסת',
-    desc: 'ארגון המניינים, לוח הזמנים והתפילות.',
-    img: null,
-  },
-  {
-    id: 'l6',
-    name: 'הרב שמעון פרץ שליט"א',
-    title: 'ראש מדור החסד',
-    desc: 'רכז חלוקת מזון וסיוע למשפחות הקהילה.',
+    name: 'מארי כפיר אריה',
+    title: 'גבאי',
+    desc: 'גבאי בית הכנסת והמוסדות.',
     img: null,
   },
 ]

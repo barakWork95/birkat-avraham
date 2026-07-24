@@ -1,5 +1,5 @@
 import { institutionInfo } from '../data/mockData'
-import { PhoneIcon, MailIcon, PinIcon, HeartIcon } from './ui/Icons'
+import { PhoneIcon, WhatsAppIcon, PinIcon, HeartIcon } from './ui/Icons'
 
 /**
  * Footer — brand summary, quick links, contact, and legal line.
@@ -66,11 +66,11 @@ export default function Footer({ onDonate }) {
             </li>
             <li className="flex items-center gap-2">
               <PhoneIcon className="h-4 w-4 text-gold-light" />
-              <a href={`tel:${info.phone}`} className="text-white/70 hover:text-gold-light">{info.phone}</a>
+              <a href={`tel:${info.phone.replace(/\D/g, '')}`} dir="ltr" className="text-white/70 hover:text-gold-light">{info.phone}</a>
             </li>
             <li className="flex items-center gap-2">
-              <MailIcon className="h-4 w-4 text-gold-light" />
-              <a href={`mailto:${info.email}`} className="text-white/70 hover:text-gold-light">{info.email}</a>
+              <WhatsAppIcon className="h-4 w-4 text-gold-light" />
+              <a href={info.whatsappGroup} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-gold-light">קבוצת השיעורים בוואטסאפ</a>
             </li>
           </ul>
         </div>
@@ -79,7 +79,7 @@ export default function Footer({ onDonate }) {
       <div className="border-t border-white/10">
         <div className="section flex flex-col items-center justify-between gap-2 py-5 text-center text-xs text-white/50 sm:flex-row sm:text-right">
           <p>© {year} מוסדות {info.nameHe}. כל הזכויות שמורות.</p>
-          <p>נבנה באהבה · אתר הדגמה (Phase 1)</p>
+          <p>מבנה כובשי החרמון 10, רחובות</p>
         </div>
       </div>
     </footer>

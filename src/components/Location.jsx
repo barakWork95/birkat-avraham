@@ -1,13 +1,17 @@
 import { institutionInfo } from '../data/mockData'
 import SectionTitle from './ui/SectionTitle'
-import { PinIcon, PhoneIcon, MailIcon, WhatsAppIcon, ClockIcon } from './ui/Icons'
+import { PinIcon, PhoneIcon, WhatsAppIcon } from './ui/Icons'
 
 /**
- * Location — address, hours, contact actions and an embedded map with a
- * Waze shortcut.
+ * Location — address, published contact numbers, WhatsApp shiurim group,
+ * and an embedded map with a Waze shortcut. Map/Waze URLs are derived from
+ * `mapQuery` so there's a single source of truth for the address.
  */
 export default function Location() {
   const info = institutionInfo
+  const q = encodeURIComponent(info.mapQuery)
+  const wazeUrl = `https://waze.com/ul?q=${q}`
+  const mapEmbed = `https://www.google.com/maps?q=${q}&output=embed`
 
   const Row = ({ icon: Icon, children }) => (
     <div className="flex items-start gap-3">
@@ -21,7 +25,11 @@ export default function Location() {
   return (
     <section id="location" className="scroll-mt-28 py-16 sm:py-24">
       <div className="section">
-        <SectionTitle eyebrow="מיקום ופרטים" title="בואו לבקר" subtitle="דלתות בית המדרש פתוחות. נשמח לראותכם." />
+        <SectionTitle
+          eyebrow="מיקום ופרטים"
+          title="בואו לבקר"
+          subtitle="דלתות בית המדרש פתוחות. נשמח לראותכם."
+        />
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Details */}
@@ -30,29 +38,28 @@ export default function Location() {
               <p className="font-semibold">כתובת</p>
               <p className="text-ink-muted">{info.address}</p>
             </Row>
-            <Row icon={ClockIcon}>
-              <p className="font-semibold">שעות פעילות</p>
-              <ul className="mt-1 space-y-1 text-sm text-ink-muted">
-                {info.hours.map((h) => (
-                  <li key={h.label} className="flex justify-between gap-6">
-                    <span>{h.label}</span>
-                    <span className="font-medium text-ink">{h.value}</span>
+
+            <Row icon={PhoneIcon}>
+              <p className="font-semibold">טלפונים</p>
+              <ul className="mt-1 space-y-2 text-sm">
+                {info.contacts.map((c) => (
+                  <li key={c.id} className="flex flex-wrap items-baseline justify-between gap-x-4">
+                    <span className="text-ink-muted">{c.label}</span>
+                    <a
+                      href={`tel:${c.phone.replace(/\D/g, '')}`}
+                      dir="ltr"
+                      className="font-medium text-ink hover:text-gold"
+                    >
+                      {c.phone}
+                    </a>
                   </li>
                 ))}
               </ul>
             </Row>
-            <Row icon={PhoneIcon}>
-              <p className="font-semibold">טלפון</p>
-              <a href={`tel:${info.phone}`} className="text-ink-muted hover:text-gold">{info.phone}</a>
-            </Row>
-            <Row icon={MailIcon}>
-              <p className="font-semibold">אימייל</p>
-              <a href={`mailto:${info.email}`} className="text-ink-muted hover:text-gold">{info.email}</a>
-            </Row>
 
             <div className="mt-1 flex flex-col gap-2 sm:flex-row">
               <a
-                href={info.wazeUrl}
+                href={wazeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-primary flex-1"
@@ -61,13 +68,13 @@ export default function Location() {
                 ניווט ב-Waze
               </a>
               <a
-                href={`https://wa.me/${info.whatsapp}`}
+                href={info.whatsappGroup}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-outline flex-1"
               >
                 <WhatsAppIcon className="h-5 w-5" />
-                וואטסאפ
+                קבוצת השיעורים
               </a>
             </div>
           </div>
@@ -76,8 +83,8 @@ export default function Location() {
           <div className="card overflow-hidden p-0">
             <iframe
               title="מפת המוסדות"
-              src={info.mapEmbed}
-              className="h-full min-h-[340px] w-full grayscale-[0.15]"
+              src={mapEmbed}
+              className="h-full min-h-[340px] w-full"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
             />

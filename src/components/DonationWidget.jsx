@@ -2,12 +2,18 @@ import { useDonation } from '../hooks/useDonation'
 import { HeartIcon } from './ui/Icons'
 
 /**
- * DonationWidget — preset tiers, custom amount, once/monthly toggle,
- * donor fields with client-side validation, and a mock async submit.
- * All state/validation lives in useDonation() so Phase 2 only rewires submit().
+ * DonationWidget — preset tiers, custom amount, one-time/recurring toggle,
+ * donor fields with client-side validation, loading state, and a mocked
+ * successful transaction that surfaces the thank-you state.
+ *
+ * All state/validation lives in useDonation(); on submit it builds a
+ * Nedarim Plus payload (Mosad 7004283) and calls the donation callback.
+ *
+ * @param {{ onDonate?: (payload:object) => Promise<{success:boolean}> }} props
+ *   Optional Nedarim Plus handler override (Phase 2). Defaults to the service.
  */
-export default function DonationWidget() {
-  const d = useDonation()
+export default function DonationWidget({ onDonate } = {}) {
+  const d = useDonation(onDonate ? { onDonate } : undefined)
 
   if (d.status === 'success') {
     return (
@@ -18,7 +24,7 @@ export default function DonationWidget() {
         <h3 className="mt-5 font-heading text-2xl font-bold text-ink">תודה רבה!</h3>
         <p className="mt-2 text-ink-muted">
           תרומתכם על סך <span className="font-bold text-gold-hover">₪{d.summary.amount}</span>{' '}
-          {d.summary.frequency === 'monthly' ? 'לחודש ' : ''}
+          {d.summary.donationType === 'recurring' ? 'לחודש ' : ''}
           נקלטה בהצלחה (הדגמה).
         </p>
         <p className="mt-1 text-sm text-ink-muted">יהי רצון שתזכו לכל הברכות.</p>
@@ -44,20 +50,22 @@ export default function DonationWidget() {
         </div>
       </div>
 
-      {/* Frequency toggle */}
+      {/* Donation type toggle */}
       <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-cream p-1">
         {[
-          { key: 'once', label: 'חד-פעמי' },
-          { key: 'monthly', label: 'הוראת קבע' },
-        ].map((f) => (
+          { key: 'one-time', label: 'חד-פעמי' },
+          { key: 'recurring', label: 'הוראת קבע' },
+        ].map((t) => (
           <button
-            key={f.key}
-            onClick={() => d.setFrequency(f.key)}
+            key={t.key}
+            onClick={() => d.setDonationType(t.key)}
             className={`rounded-lg py-2 text-sm font-semibold transition-all ${
-              d.frequency === f.key ? 'bg-white text-gold-hover shadow-card' : 'text-ink-muted hover:text-ink'
+              d.donationType === t.key
+                ? 'bg-white text-gold-hover shadow-card'
+                : 'text-ink-muted hover:text-ink'
             }`}
           >
-            {f.label}
+            {t.label}
           </button>
         ))}
       </div>
@@ -71,9 +79,7 @@ export default function DonationWidget() {
               key={t.id}
               onClick={() => d.selectTier(t.amount)}
               className={`relative flex flex-col items-center rounded-xl border-2 px-2 py-3 transition-all ${
-                active
-                  ? 'border-gold bg-gold/5 shadow-gold'
-                  : 'border-ink/10 hover:border-gold/40'
+                active ? 'border-gold bg-gold/5 shadow-gold' : 'border-ink/10 hover:border-gold/40'
               }`}
             >
               {t.popular && (
@@ -110,18 +116,18 @@ export default function DonationWidget() {
         <div>
           <input
             type="text"
-            value={d.donor.name}
-            onChange={(e) => d.setDonor({ ...d.donor, name: e.target.value })}
+            value={d.fullName}
+            onChange={(e) => d.setFullName(e.target.value)}
             placeholder="שם מלא *"
             className={field}
           />
-          {d.errors.name && <p className="mt-1 text-sm text-red-600">{d.errors.name}</p>}
+          {d.errors.fullName && <p className="mt-1 text-sm text-red-600">{d.errors.fullName}</p>}
         </div>
         <div>
           <input
             type="email"
-            value={d.donor.email}
-            onChange={(e) => d.setDonor({ ...d.donor, email: e.target.value })}
+            value={d.email}
+            onChange={(e) => d.setEmail(e.target.value)}
             placeholder="אימייל (לקבלה)"
             className={field}
           />
@@ -129,12 +135,18 @@ export default function DonationWidget() {
         </div>
         <input
           type="text"
-          value={d.donor.dedication}
-          onChange={(e) => d.setDonor({ ...d.donor, dedication: e.target.value })}
+          value={d.dedicationNote}
+          onChange={(e) => d.setDedicationNote(e.target.value)}
           placeholder="לעילוי נשמת / להצלחת (רשות)"
           className={field}
         />
       </div>
+
+      {d.status === 'error' && (
+        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+          אירעה תקלה בעיבוד התרומה. נא לנסות שוב.
+        </p>
+      )}
 
       <button
         onClick={d.submit}
@@ -150,13 +162,13 @@ export default function DonationWidget() {
           <>
             <HeartIcon className="h-5 w-5" />
             לתרומה ₪{d.effectiveAmount || 0}
-            {d.frequency === 'monthly' ? ' לחודש' : ''}
+            {d.donationType === 'recurring' ? ' לחודש' : ''}
           </>
         )}
       </button>
 
       <p className="mt-3 text-center text-xs text-ink-muted">
-        תרומה מאובטחת · הדגמה בלבד — בשלב הבא יחובר סליקה (נדרים פלוס / משולם / טרנזילה)
+        תרומה מאובטחת דרך <span className="font-semibold">נדרים פלוס</span> · סליקה מוצפנת
       </p>
     </div>
   )

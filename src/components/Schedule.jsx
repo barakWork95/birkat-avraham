@@ -13,9 +13,9 @@ export default function Schedule() {
     <section id="schedule" className="scroll-mt-28 py-16 sm:py-24">
       <div className="section">
         <SectionTitle
-          eyebrow='לו"ז יומי'
-          title="שיעורים ותפילות"
-          subtitle="לוח הזמנים המלא של בית המדרש — תפילות, שיעורים וסדרי הכולל."
+          eyebrow='לו"ז שבועי'
+          title="שיעורים וכולל ערב"
+          subtitle="שיעורי הרב איתן אברהם שליט״א וסדרי הכולל בבית המדרש."
         />
 
         {/* Tabs */}
