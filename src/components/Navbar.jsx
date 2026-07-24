@@ -32,19 +32,18 @@ export default function Navbar({ onDonate }) {
   }, [open])
 
   const Brand = () => (
-    <a href="#hero" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-      <span
-        className="grid h-11 w-11 place-items-center rounded-xl font-heading text-2xl text-gold-light"
-        style={{ background: 'radial-gradient(circle at 30% 25%, #2B1B17, #1A1110)' }}
-      >
-        ב
-      </span>
-      <span className="leading-tight">
-        <span className="block font-heading text-xl font-bold text-ink">
-          {institutionInfo.nameHe}
-        </span>
-        <span className="block text-xs text-ink-muted">{institutionInfo.tagline}</span>
-      </span>
+    <a
+      href="#hero"
+      className="flex items-center"
+      onClick={() => setOpen(false)}
+      aria-label={`מוסדות ${institutionInfo.nameHe}`}
+    >
+      {/* Real logo — file lives at public/logo.png (BASE_URL keeps it correct under the GH Pages sub-path) */}
+      <img
+        src={`${import.meta.env.BASE_URL}logo.png`}
+        alt={`מוסדות ${institutionInfo.nameHe}`}
+        className="h-12 w-auto sm:h-14"
+      />
     </a>
   )
 
