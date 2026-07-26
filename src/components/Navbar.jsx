@@ -7,6 +7,7 @@ const NAV_LINKS = [
   { href: '#schedule', label: 'לוח זמנים' },
   { href: '#leadership', label: 'אנשי קשר' },
   { href: '#gallery', label: 'גלריה' },
+  { href: '#events', label: 'אירועים' },
   { href: '#location', label: 'צור קשר' },
 ]
 

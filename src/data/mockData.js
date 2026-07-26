@@ -210,7 +210,7 @@ export const galleryData = [
  * Upcoming events (used by useEvents / future events section & CTAs).
  */
 export const eventsData = [
-  { id: 'e1', title: 'הילולת הצדיק', date: '2025-08-10', hebrewDate: 'ט״ז באב', desc: 'ערב לימוד ותפילה לזכר הצדיק, בהשתתפות הרב.' },
-  { id: 'e2', title: 'סיום מסכת', date: '2025-08-24', hebrewDate: 'ר״ח אלול', desc: 'מעמד סיום חגיגי לאברכי הכולל.' },
-  { id: 'e3', title: 'חלוקת סלי מזון', date: '2025-09-15', hebrewDate: 'כ״ב אלול', desc: 'חלוקת סלי מזון למשפחות לקראת החגים.' },
+  { id: 'e1', title: 'הילולת הצדיק', date: '2026-07-31', hebrewDate: 'ט״ז באב', desc: 'ערב לימוד ותפילה לזכר הצדיק, בהשתתפות הרב.' },
+  { id: 'e2', title: 'סיום מסכת', date: '2026-08-14', hebrewDate: 'ר״ח אלול', desc: 'מעמד סיום חגיגי לאברכי הכולל.' },
+  { id: 'e3', title: 'חלוקת סלי מזון', date: '2026-09-04', hebrewDate: 'כ״ב אלול', desc: 'חלוקת סלי מזון למשפחות לקראת החגים.' },
 ]

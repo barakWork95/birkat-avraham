@@ -1,14 +1,30 @@
 import { useMemo } from 'react'
-import { eventsData } from '../data/mockData'
+import { useCollection } from './useCollection'
 
 /**
- * useEvents — upcoming community events, sorted soonest-first.
- * PHASE 2: replace the constant with GET /api/events.
+ * useEvents — upcoming community events, read from the data provider so admin
+ * edits reflect live. Filters out events whose date has passed and sorts the
+ * rest soonest-first. Events with no/invalid date are kept (shown last).
  */
 export function useEvents() {
-  const events = useMemo(
-    () => [...eventsData].sort((a, b) => new Date(a.date) - new Date(b.date)),
-    [],
-  )
+  const all = useCollection('events')
+
+  const events = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return [...all]
+      .filter((e) => {
+        const d = new Date(e.date)
+        return isNaN(d.getTime()) || d >= today
+      })
+      .sort((a, b) => {
+        const da = new Date(a.date).getTime()
+        const db = new Date(b.date).getTime()
+        if (isNaN(da)) return 1
+        if (isNaN(db)) return -1
+        return da - db
+      })
+  }, [all])
+
   return { events }
 }

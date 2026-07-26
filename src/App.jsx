@@ -6,6 +6,7 @@ import DonationSection from './components/DonationSection'
 import Schedule from './components/Schedule'
 import Leadership from './components/Leadership'
 import Gallery from './components/Gallery'
+import Events from './components/Events'
 import Location from './components/Location'
 import Footer from './components/Footer'
 import { HeartIcon } from './components/ui/Icons'
@@ -32,6 +33,7 @@ export default function App() {
         <Schedule />
         <Leadership />
         <Gallery />
+        <Events />
         <Location />
       </main>
 
