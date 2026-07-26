@@ -1,12 +1,16 @@
-import { leadershipData } from '../data/mockData'
 import SectionTitle from './ui/SectionTitle'
 import Avatar from './ui/Avatar'
+import { useCollection } from '../hooks/useCollection'
 
 /**
  * Leadership — staff grid. The featured leader (ראש המוסדות) spans a
  * wider, elevated card at the top.
+ *
+ * Reads from the data provider (useCollection), so edits made in the admin
+ * panel reflect here immediately — the proven end-to-end slice.
  */
 export default function Leadership() {
+  const leadershipData = useCollection('leadership')
   const featured = leadershipData.find((p) => p.featured)
   const rest = leadershipData.filter((p) => !p.featured)
 

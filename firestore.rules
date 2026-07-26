@@ -1,0 +1,23 @@
+rules_version = '2';
+
+// Birkat Avraham — Firestore security rules (for the Firebase sprint).
+// Public site can READ all content; only signed-in admins can WRITE.
+//
+// Deploy: firebase deploy --only firestore:rules
+// Grant admin: set a custom claim { admin: true } on the gabbaim's accounts
+// (via a small Cloud Function or the Admin SDK) — see docs/FIREBASE_SETUP.md.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Content collections: world-readable, admin-writable.
+    match /{collection}/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
