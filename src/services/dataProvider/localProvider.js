@@ -10,15 +10,21 @@
  * so switching is a one-line change in ./index.js — no component changes.
  */
 import * as mock from '../../data/mockData'
-import { COLLECTIONS, COLLECTION_KEYS } from '../../config/collections'
+import {
+  COLLECTIONS,
+  COLLECTION_KEYS,
+  SINGLETONS,
+  SINGLETON_KEYS,
+} from '../../config/collections'
 
 const PREFIX = 'ba:'
 const EVENT = 'ba:data-change'
 // Bump this whenever the mockData seed changes so returning visitors get fresh
 // content after a deploy (re-seeds from mockData; discards local demo edits).
-const SEED_VERSION = '2026-07-26'
+const SEED_VERSION = '2026-07-26b'
 
 const keyFor = (name) => `${PREFIX}${name}`
+const singleKey = (name) => `${PREFIX}single:${name}`
 
 function read(name) {
   try {
@@ -50,6 +56,12 @@ function ensureSeeded() {
     if (fresh || localStorage.getItem(keyFor(name)) == null) {
       const seed = mock[COLLECTIONS[name].seedKey] || []
       localStorage.setItem(keyFor(name), JSON.stringify(seed))
+    }
+  })
+  SINGLETON_KEYS.forEach((name) => {
+    if (fresh || localStorage.getItem(singleKey(name)) == null) {
+      const seed = mock[SINGLETONS[name].seedKey] || {}
+      localStorage.setItem(singleKey(name), JSON.stringify(seed))
     }
   })
   if (fresh) localStorage.setItem(`${PREFIX}seedVersion`, SEED_VERSION)
@@ -109,6 +121,46 @@ export const localProvider = {
     }
     const onStorage = (e) => {
       if (e.key === keyFor(name)) cb(read(name))
+    }
+    window.addEventListener(EVENT, onLocal)
+    window.addEventListener('storage', onStorage)
+    return () => {
+      window.removeEventListener(EVENT, onLocal)
+      window.removeEventListener('storage', onStorage)
+    }
+  },
+
+  // ── Singletons (one-off documents, e.g. institution info) ──────────
+  getSingletonSync(name) {
+    try {
+      return JSON.parse(localStorage.getItem(singleKey(name))) || {}
+    } catch {
+      return {}
+    }
+  },
+
+  async getSingleton(name) {
+    return this.getSingletonSync(name)
+  },
+
+  async setSingleton(name, data) {
+    localStorage.setItem(singleKey(name), JSON.stringify(data))
+    window.dispatchEvent(new CustomEvent(EVENT, { detail: { name: `single:${name}` } }))
+    return data
+  },
+
+  async resetSingleton(name) {
+    const seed = mock[SINGLETONS[name].seedKey] || {}
+    await this.setSingleton(name, seed)
+    return seed
+  },
+
+  subscribeSingleton(name, cb) {
+    const onLocal = (e) => {
+      if (!e.detail || e.detail.name === `single:${name}`) cb(this.getSingletonSync(name))
+    }
+    const onStorage = (e) => {
+      if (e.key === singleKey(name)) cb(this.getSingletonSync(name))
     }
     window.addEventListener(EVENT, onLocal)
     window.addEventListener('storage', onStorage)

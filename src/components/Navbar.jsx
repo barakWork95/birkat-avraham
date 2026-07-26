@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { institutionInfo } from '../data/mockData'
 import { MenuIcon, CloseIcon, HeartIcon } from './ui/Icons'
+import { useInfo } from '../hooks/useInfo'
 
 const NAV_LINKS = [
   { href: '#hero', label: 'בית' },
@@ -15,6 +15,7 @@ const NAV_LINKS = [
  * and a full-screen mobile drawer.
  */
 export default function Navbar({ onDonate }) {
+  const institutionInfo = useInfo()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
 

@@ -1,6 +1,6 @@
-import { institutionInfo } from '../data/mockData'
 import SectionTitle from './ui/SectionTitle'
 import { PinIcon, PhoneIcon, WhatsAppIcon } from './ui/Icons'
+import { useInfo } from '../hooks/useInfo'
 
 /**
  * Location — address, published contact numbers, WhatsApp shiurim group,
@@ -8,8 +8,8 @@ import { PinIcon, PhoneIcon, WhatsAppIcon } from './ui/Icons'
  * `mapQuery` so there's a single source of truth for the address.
  */
 export default function Location() {
-  const info = institutionInfo
-  const q = encodeURIComponent(info.mapQuery)
+  const info = useInfo()
+  const q = encodeURIComponent(info.mapQuery || '')
   const wazeUrl = `https://waze.com/ul?q=${q}`
   const mapEmbed = `https://www.google.com/maps?q=${q}&output=embed`
 
@@ -42,7 +42,7 @@ export default function Location() {
             <Row icon={PhoneIcon}>
               <p className="font-semibold">טלפונים</p>
               <ul className="mt-1 space-y-2 text-sm">
-                {info.contacts.map((c) => (
+                {(info.contacts || []).map((c) => (
                   <li key={c.id} className="flex flex-wrap items-baseline justify-between gap-x-4">
                     <span className="text-ink-muted">{c.label}</span>
                     <a

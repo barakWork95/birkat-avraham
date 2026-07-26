@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { impactSlides } from '../data/mockData'
 import { ChevronLeft, ChevronRight } from './ui/Icons'
+import { useCollection } from '../hooks/useCollection'
 
 /**
  * ImpactCarousel — auto-advancing, swipeable carousel showing where
  * donations go. Pauses on hover/focus; supports dots + arrows.
+ * Reads from the data provider so admin edits reflect live.
  */
 export default function ImpactCarousel() {
+  const impactSlides = useCollection('impact')
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const touchX = useRef(null)
@@ -14,11 +16,16 @@ export default function ImpactCarousel() {
 
   const go = useCallback((next) => setIndex((i) => (next + count) % count), [count])
 
+  // keep index valid if slides are added/removed in admin
   useEffect(() => {
-    if (paused) return
+    if (count > 0 && index >= count) setIndex(0)
+  }, [count, index])
+
+  useEffect(() => {
+    if (paused || count === 0) return
     const t = setInterval(() => go(index + 1), 4500)
     return () => clearInterval(t)
-  }, [index, paused, go])
+  }, [index, paused, go, count])
 
   const onTouchStart = (e) => (touchX.current = e.touches[0].clientX)
   const onTouchEnd = (e) => {

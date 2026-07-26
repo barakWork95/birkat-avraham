@@ -92,6 +92,46 @@ export const COLLECTIONS = {
       gradient: 'linear-gradient(135deg, #1A1110 0%, #4a2f1e 55%, #B8860B 100%)',
     },
   },
+
+  scheduleShiurim: {
+    label: 'שיעורים (לו"ז)',
+    seedKey: 'scheduleShiurim',
+    itemTitle: (i) => i.name,
+    itemSubtitle: (i) => [i.time, i.sub].filter(Boolean).join(' · '),
+    fields: [
+      { key: 'name', label: 'שם השיעור', type: 'text', required: true },
+      { key: 'time', label: 'שעה', type: 'text' },
+      { key: 'sub', label: 'יום / מגיד שיעור', type: 'text' },
+      { key: 'location', label: 'מיקום', type: 'text' },
+    ],
+    defaults: { name: '', time: '', sub: '', location: 'בית המדרש' },
+  },
+
+  scheduleKollel: {
+    label: 'כולל ערב (לו"ז)',
+    seedKey: 'scheduleKollel',
+    itemTitle: (i) => i.name,
+    itemSubtitle: (i) => [i.time, i.sub].filter(Boolean).join(' · '),
+    fields: [
+      { key: 'name', label: 'שם הסדר', type: 'text', required: true },
+      { key: 'time', label: 'שעה', type: 'text' },
+      { key: 'sub', label: 'ימים', type: 'text' },
+      { key: 'location', label: 'מיקום', type: 'text' },
+    ],
+    defaults: { name: '', time: '', sub: '', location: 'בית המדרש' },
+  },
 }
 
 export const COLLECTION_KEYS = Object.keys(COLLECTIONS)
+
+/**
+ * SINGLETONS — one-off documents (not lists). Edited via a dedicated screen.
+ */
+export const SINGLETONS = {
+  info: {
+    label: 'פרטי מוסד',
+    seedKey: 'institutionInfo',
+  },
+}
+
+export const SINGLETON_KEYS = Object.keys(SINGLETONS)

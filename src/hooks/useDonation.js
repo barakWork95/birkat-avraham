@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { donationTiers } from '../data/mockData'
 import { buildNedarimPayload, handleNedarimDonation } from '../services/nedarimPlus'
+import { useCollection } from './useCollection'
 
 /**
  * useDonation — donation form state, validation & submission.
@@ -16,7 +16,7 @@ import { buildNedarimPayload, handleNedarimDonation } from '../services/nedarimP
  * @param {{ onDonate?: (payload:object) => Promise<{success:boolean}> }} [opts]
  */
 export function useDonation({ onDonate = handleNedarimDonation } = {}) {
-  const [tiers] = useState(donationTiers)
+  const tiers = useCollection('donationTiers')
   const [amount, setAmount] = useState(180)
   const [custom, setCustom] = useState('')
   const [donationType, setDonationType] = useState('one-time') // 'one-time' | 'recurring'

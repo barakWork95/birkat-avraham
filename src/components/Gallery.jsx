@@ -1,21 +1,22 @@
 import { useEffect, useMemo, useState } from 'react'
-import { galleryData } from '../data/mockData'
 import SectionTitle from './ui/SectionTitle'
 import { PlayIcon, CloseIcon, ChevronLeft, ChevronRight } from './ui/Icons'
+import { useCollection } from '../hooks/useCollection'
 
 const CATEGORIES = ['הכל', 'שיעורים', 'כולל', 'חסד', 'אירועים', 'נוער']
 
 /**
  * Gallery — filterable media grid with a keyboard-navigable lightbox.
- * Photos show a gradient placeholder; videos open in an embedded frame.
+ * Reads from the data provider so admin edits reflect live.
  */
 export default function Gallery() {
+  const galleryData = useCollection('gallery')
   const [filter, setFilter] = useState('הכל')
   const [lightbox, setLightbox] = useState(null) // index within `items`
 
   const items = useMemo(
     () => (filter === 'הכל' ? galleryData : galleryData.filter((g) => g.category === filter)),
-    [filter],
+    [filter, galleryData],
   )
 
   // reset lightbox if the filter removes the open item

@@ -1,11 +1,11 @@
-import { institutionInfo } from '../data/mockData'
 import { PhoneIcon, WhatsAppIcon, PinIcon, HeartIcon } from './ui/Icons'
+import { useInfo } from '../hooks/useInfo'
 
 /**
  * Footer — brand summary, quick links, contact, and legal line.
  */
 export default function Footer({ onDonate }) {
-  const info = institutionInfo
+  const info = useInfo()
   const year = new Date().getFullYear()
 
   const links = [

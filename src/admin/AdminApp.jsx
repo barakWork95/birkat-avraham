@@ -5,6 +5,7 @@ import AdminLayout from './AdminLayout'
 import Dashboard from './Dashboard'
 import CollectionList from './CollectionList'
 import CollectionEditor from './CollectionEditor'
+import InfoEditor from './InfoEditor'
 
 /**
  * AdminApp — mounted at /admin/*. Gates on auth, then renders the admin routes.
@@ -18,6 +19,7 @@ export default function AdminApp() {
     <AdminLayout user={user} onSignOut={signOut}>
       <Routes>
         <Route index element={<Dashboard />} />
+        <Route path="info" element={<InfoEditor />} />
         <Route path=":name" element={<CollectionList />} />
         <Route path=":name/:id" element={<CollectionEditor />} />
       </Routes>

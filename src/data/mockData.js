@@ -101,6 +101,10 @@ export const scheduleData = {
   ],
 }
 
+// Flat exports so the admin can manage each schedule tab as its own collection.
+export const scheduleShiurim = scheduleData.shiurim
+export const scheduleKollel = scheduleData.kollel
+
 /**
  * Leadership & staff grid.
  * `img: null` → the UI renders an elegant monogram avatar (no external assets needed for the demo).

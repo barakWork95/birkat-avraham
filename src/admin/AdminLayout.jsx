@@ -45,6 +45,15 @@ export default function AdminLayout({ children, user, onSignOut }) {
                 </Link>
               )
             })}
+            <div className="my-1 border-t border-ink/10" />
+            <Link
+              to="/admin/info"
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                pathname.includes('/admin/info') ? 'bg-gold/10 text-gold-hover' : 'text-ink/80 hover:bg-ink/5'
+              }`}
+            >
+              פרטי מוסד
+            </Link>
           </nav>
         </aside>
 

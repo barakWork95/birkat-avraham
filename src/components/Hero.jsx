@@ -1,5 +1,5 @@
-import { institutionInfo } from '../data/mockData'
 import { HeartIcon, BookIcon, StarIcon, HandsIcon, ChevronLeft } from './ui/Icons'
+import { useInfo } from '../hooks/useInfo'
 
 const PILLARS = [
   { icon: BookIcon, title: 'כולל אברכים', desc: 'תלמידי חכמים העמלים בתורה' },
@@ -12,6 +12,7 @@ const PILLARS = [
  * followed by the three institutional pillars.
  */
 export default function Hero({ onDonate }) {
+  const institutionInfo = useInfo()
   return (
     <section id="hero" className="relative overflow-hidden">
       {/* Decorative royal backdrop */}

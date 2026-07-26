@@ -2,7 +2,7 @@ import { forwardRef } from 'react'
 import SectionTitle from './ui/SectionTitle'
 import ImpactCarousel from './ImpactCarousel'
 import DonationWidget from './DonationWidget'
-import { institutionInfo } from '../data/mockData'
+import { useInfo } from '../hooks/useInfo'
 
 /**
  * DonationSection — pairs the impact carousel ("see where funds go")
@@ -10,7 +10,7 @@ import { institutionInfo } from '../data/mockData'
  * `ref` lets CTAs elsewhere scroll here.
  */
 const DonationSection = forwardRef(function DonationSection(_props, ref) {
-  const bank = institutionInfo.bankTransfer
+  const bank = useInfo().bankTransfer || {}
 
   return (
     <section id="donate" ref={ref} className="scroll-mt-28 bg-white/60 py-16 sm:py-24">
