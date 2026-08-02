@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { COLLECTIONS } from '../config/collections'
 import { provider } from '../services/dataProvider'
+import { compressImage } from '../lib/compressImage'
 
 /**
  * CollectionEditor — generic add/edit form, rendered from the collection schema.
@@ -30,6 +31,15 @@ export default function CollectionEditor() {
   const backTo = `/admin/${name}`
 
   const set = (key, val) => setForm((f) => ({ ...f, [key]: val }))
+
+  const onPickImage = async (key, file) => {
+    if (!file) return
+    try {
+      set(key, await compressImage(file))
+    } catch (err) {
+      setErrors((e) => ({ ...e, [key]: err.message || 'העלאת התמונה נכשלה' }))
+    }
+  }
 
   const validate = () => {
     const e = {}
@@ -99,6 +109,33 @@ export default function CollectionEditor() {
                   <input type="checkbox" checked={!!form[f.key]} onChange={(e) => set(f.key, e.target.checked)} className="h-5 w-5 accent-gold" />
                   <span className="text-sm text-ink-muted">כן</span>
                 </label>
+              )}
+              {f.type === 'image' && (
+                <div className="flex items-center gap-4">
+                  {form[f.key] ? (
+                    <img src={form[f.key]} alt="" className="h-20 w-20 rounded-xl object-cover ring-1 ring-ink/10" />
+                  ) : (
+                    <div className="grid h-20 w-20 place-items-center rounded-xl bg-cream text-xs text-ink-muted ring-1 ring-ink/10">
+                      אין תמונה
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-2">
+                    <label className="btn-outline cursor-pointer text-sm">
+                      {form[f.key] ? 'החלפת תמונה' : 'העלאת תמונה'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => onPickImage(f.key, e.target.files?.[0])}
+                      />
+                    </label>
+                    {form[f.key] && (
+                      <button type="button" onClick={() => set(f.key, '')} className="text-sm text-red-600 hover:underline">
+                        הסרה
+                      </button>
+                    )}
+                  </div>
+                </div>
               )}
 
               {errors[f.key] && <p className="mt-1 text-sm text-red-600">{errors[f.key]}</p>}

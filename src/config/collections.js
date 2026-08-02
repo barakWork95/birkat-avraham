@@ -22,6 +22,7 @@ export const COLLECTIONS = {
       { key: 'name', label: 'שם', type: 'text', required: true },
       { key: 'title', label: 'תפקיד', type: 'text', required: true },
       { key: 'desc', label: 'תיאור קצר', type: 'textarea' },
+      { key: 'img', label: 'תמונה', type: 'image' },
       { key: 'featured', label: 'הדגשה (ראש המוסדות)', type: 'boolean' },
     ],
     defaults: { name: '', title: '', desc: '', featured: false, img: null },
@@ -55,11 +56,13 @@ export const COLLECTIONS = {
         options: ['שיעורים', 'כולל', 'חסד', 'אירועים', 'נוער'],
       },
       { key: 'type', label: 'סוג', type: 'select', options: ['photo', 'video'] },
+      { key: 'image', label: 'תמונה', type: 'image' },
       { key: 'videoUrl', label: 'קישור וידאו (למדיה מסוג וידאו)', type: 'text' },
     ],
-    // NOTE: real image upload arrives with Firebase Storage. Until then items keep
-    // their gradient placeholder unless a videoUrl is provided.
-    defaults: { title: '', category: 'שיעורים', type: 'photo', videoUrl: '', gradient: 'linear-gradient(135deg,#1A1110,#B8860B)' },
+    // Photos uploaded here are stored as compressed data URLs (works today in
+    // local mode). Items with no uploaded image fall back to the gradient
+    // placeholder. Firebase Storage upgrade: upload the file, store its URL here.
+    defaults: { title: '', category: 'שיעורים', type: 'photo', image: '', videoUrl: '', gradient: 'linear-gradient(135deg,#1A1110,#B8860B)' },
   },
 
   donationTiers: {

@@ -80,9 +80,13 @@ export default function Gallery() {
               className="group relative aspect-square overflow-hidden rounded-2xl shadow-card ring-1 ring-ink/5 transition-all hover:shadow-card-hover"
               style={{ background: g.gradient }}
             >
-              <span className="pointer-events-none absolute inset-0 grid place-items-center font-heading text-6xl text-white/10">
-                ב
-              </span>
+              {g.image ? (
+                <img src={g.image} alt={g.title} className="absolute inset-0 h-full w-full object-cover" />
+              ) : (
+                <span className="pointer-events-none absolute inset-0 grid place-items-center font-heading text-6xl text-white/10">
+                  ב
+                </span>
+              )}
               {/* overlay */}
               <span className="absolute inset-0 bg-ink/0 transition-colors group-hover:bg-ink/30" />
               {g.type === 'video' && (
@@ -147,6 +151,12 @@ export default function Gallery() {
                   allowFullScreen
                 />
               </div>
+            ) : active.image ? (
+              <img
+                src={active.image}
+                alt={active.title}
+                className="max-h-[80vh] w-full rounded-2xl object-contain"
+              />
             ) : (
               <div
                 className="relative grid aspect-[16/10] w-full place-items-center overflow-hidden rounded-2xl"
