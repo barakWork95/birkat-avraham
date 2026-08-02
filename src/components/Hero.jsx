@@ -35,7 +35,8 @@ export default function Hero({ onDonate }) {
           </span>
 
           <h1 className="animate-fade-up font-heading text-5xl font-black leading-[1.1] text-ink sm:text-7xl">
-            מוסדות <span className="text-gold">״{institutionInfo.nameHe}״</span>
+            <span className="block">מוסדות</span>
+            <span className="block whitespace-nowrap text-gold">״{institutionInfo.nameHe}״</span>
           </h1>
 
           <p className="animate-fade-up mt-4 text-lg font-medium text-ink-soft sm:text-xl" style={{ animationDelay: '0.08s' }}>

@@ -10,18 +10,18 @@ export default function AdminLayout({ children, user, onSignOut }) {
   return (
     <div dir="rtl" className="min-h-screen bg-cream text-ink">
       {/* Top bar */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-ink/10 bg-white px-5 py-3">
-        <Link to="/admin" className="flex items-center gap-3">
-          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="ברכת אברהם" className="h-9 w-auto" />
-          <span className="font-heading text-lg font-bold">ניהול תוכן</span>
+      <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-ink/10 bg-white px-4 py-3 sm:px-5">
+        <Link to="/admin" className="flex min-w-0 shrink-0 items-center gap-2">
+          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="ברכת אברהם" className="h-9 w-auto shrink-0" />
+          <span className="hidden font-heading text-lg font-bold sm:inline">ניהול תוכן</span>
         </Link>
-        <div className="flex items-center gap-3 text-sm">
-          <a href={import.meta.env.BASE_URL} className="text-ink-muted hover:text-gold">
+        <div className="flex min-w-0 items-center gap-2 text-sm sm:gap-3">
+          <a href={import.meta.env.BASE_URL} className="whitespace-nowrap text-ink-muted hover:text-gold">
             צפייה באתר ↗
           </a>
-          <span className="text-ink/20">|</span>
-          <span className="text-ink-muted">{user?.name}</span>
-          <button onClick={onSignOut} className="rounded-lg bg-ink/5 px-3 py-1.5 font-medium hover:bg-ink/10">
+          <span className="hidden text-ink/20 md:inline">|</span>
+          <span className="hidden max-w-[180px] truncate text-ink-muted md:inline">{user?.name}</span>
+          <button onClick={onSignOut} className="shrink-0 rounded-lg bg-ink/5 px-3 py-1.5 font-medium hover:bg-ink/10">
             יציאה
           </button>
         </div>
