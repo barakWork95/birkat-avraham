@@ -1,5 +1,5 @@
 import SectionTitle from './ui/SectionTitle'
-import { PinIcon, PhoneIcon, WhatsAppIcon } from './ui/Icons'
+import { PinIcon, PhoneIcon, WhatsAppIcon, MailIcon } from './ui/Icons'
 import { useInfo } from '../hooks/useInfo'
 
 /**
@@ -56,6 +56,19 @@ export default function Location() {
                 ))}
               </ul>
             </Row>
+
+            {info.kollelEmail && (
+              <Row icon={MailIcon}>
+                <p className="font-semibold">אימייל הכולל</p>
+                <a
+                  href={`mailto:${info.kollelEmail}`}
+                  dir="ltr"
+                  className="text-ink-muted hover:text-gold"
+                >
+                  {info.kollelEmail}
+                </a>
+              </Row>
+            )}
 
             <div className="mt-1 flex flex-col gap-2 sm:flex-row">
               <a

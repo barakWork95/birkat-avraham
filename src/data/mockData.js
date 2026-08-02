@@ -38,6 +38,8 @@ export const institutionInfo = {
   ],
   // WhatsApp group for the Rav's shiurim
   whatsappGroup: 'https://chat.whatsapp.com/CBqj8VBPuVkJHMaECAubXo',
+  // Kollel contact email
+  kollelEmail: 'kolelbirkatavraham@gmail.com',
   // Bank-transfer details for donations
   bankTransfer: {
     accountName: 'חנוך לנער עפ"י דרכו',

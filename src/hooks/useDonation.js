@@ -9,13 +9,12 @@ import { useCollection } from './useCollection'
  * fullName, email, dedicationNote.
  *
  * On submit it builds a Nedarim Plus payload and hands it to the
- * `onDonate` callback (defaults to the Nedarim Plus service). Swap that
- * callback — or the service internals — for the live gateway in Phase 2;
- * no UI component needs to change.
+ * `onDonate` callback (defaults to the Nedarim Plus service), passing the live
+ * iframe element (from `iframeRef`) so the service can charge through it.
  *
- * @param {{ onDonate?: (payload:object) => Promise<{success:boolean}> }} [opts]
+ * @param {{ onDonate?: (payload:object, ctx:{iframe?:HTMLIFrameElement}) => Promise<{success:boolean}>, iframeRef?: {current: HTMLIFrameElement|null} }} [opts]
  */
-export function useDonation({ onDonate = handleNedarimDonation } = {}) {
+export function useDonation({ onDonate = handleNedarimDonation, iframeRef } = {}) {
   const tiers = useCollection('donationTiers')
   const [amount, setAmount] = useState(180)
   const [custom, setCustom] = useState('')
@@ -60,7 +59,8 @@ export function useDonation({ onDonate = handleNedarimDonation } = {}) {
     })
 
     try {
-      const result = await onDonate(payload) // ← Nedarim Plus integration point
+      // ← Nedarim Plus integration point (live iframe passed through)
+      const result = await onDonate(payload, { iframe: iframeRef?.current })
       setLastResult(result)
       setStatus(result?.success ? 'success' : 'error')
     } catch (err) {

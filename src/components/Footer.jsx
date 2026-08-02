@@ -1,4 +1,4 @@
-import { PhoneIcon, WhatsAppIcon, PinIcon, HeartIcon } from './ui/Icons'
+import { PhoneIcon, WhatsAppIcon, PinIcon, HeartIcon, MailIcon } from './ui/Icons'
 import { useInfo } from '../hooks/useInfo'
 
 /**
@@ -68,6 +68,12 @@ export default function Footer({ onDonate }) {
               <PhoneIcon className="h-4 w-4 text-gold-light" />
               <a href={`tel:${info.phone.replace(/\D/g, '')}`} dir="ltr" className="text-white/70 hover:text-gold-light">{info.phone}</a>
             </li>
+            {info.kollelEmail && (
+              <li className="flex items-center gap-2">
+                <MailIcon className="h-4 w-4 text-gold-light" />
+                <a href={`mailto:${info.kollelEmail}`} dir="ltr" className="text-white/70 hover:text-gold-light">{info.kollelEmail}</a>
+              </li>
+            )}
             <li className="flex items-center gap-2">
               <WhatsAppIcon className="h-4 w-4 text-gold-light" />
               <a href={info.whatsappGroup} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-gold-light">קבוצת השיעורים בוואטסאפ</a>

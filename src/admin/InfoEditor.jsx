@@ -15,6 +15,7 @@ const SCALARS = [
   { key: 'address', label: 'כתובת' },
   { key: 'mapQuery', label: 'כתובת לחיפוש במפה' },
   { key: 'phone', label: 'טלפון ראשי' },
+  { key: 'kollelEmail', label: 'אימייל הכולל' },
   { key: 'whatsappGroup', label: 'קישור קבוצת וואטסאפ' },
   { key: 'nedarimMosadId', label: 'מזהה מוסד נדרים פלוס' },
 ]

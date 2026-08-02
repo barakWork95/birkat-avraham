@@ -1,5 +1,8 @@
+import { useRef } from 'react'
 import { useDonation } from '../hooks/useDonation'
 import { HeartIcon } from './ui/Icons'
+import NedarimIframe from './NedarimIframe'
+import { isNedarimConfigured } from '../services/nedarimPlus'
 
 /**
  * DonationWidget — preset tiers, custom amount, one-time/recurring toggle,
@@ -13,7 +16,9 @@ import { HeartIcon } from './ui/Icons'
  *   Optional Nedarim Plus handler override (Phase 2). Defaults to the service.
  */
 export default function DonationWidget({ onDonate } = {}) {
-  const d = useDonation(onDonate ? { onDonate } : undefined)
+  const frameRef = useRef(null)
+  const live = isNedarimConfigured()
+  const d = useDonation({ ...(onDonate ? { onDonate } : {}), iframeRef: frameRef })
 
   if (d.status === 'success') {
     return (
@@ -25,7 +30,7 @@ export default function DonationWidget({ onDonate } = {}) {
         <p className="mt-2 text-ink-muted">
           תרומתכם על סך <span className="font-bold text-gold-hover">₪{d.summary.amount}</span>{' '}
           {d.summary.donationType === 'recurring' ? 'לחודש ' : ''}
-          נקלטה בהצלחה (הדגמה).
+          נקלטה בהצלחה{live ? '' : ' (הדגמה)'}.
         </p>
         <p className="mt-1 text-sm text-ink-muted">יהי רצון שתזכו לכל הברכות.</p>
         <button onClick={d.reset} className="btn-outline mt-6">
@@ -142,9 +147,12 @@ export default function DonationWidget({ onDonate } = {}) {
         />
       </div>
 
+      {/* Live credit-card fields (Nedarim Plus iframe) — only when configured */}
+      {live && <NedarimIframe ref={frameRef} />}
+
       {d.status === 'error' && (
         <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-          אירעה תקלה בעיבוד התרומה. נא לנסות שוב.
+          {d.lastResult?.raw?.Message || 'אירעה תקלה בעיבוד התרומה. נא לנסות שוב.'}
         </p>
       )}
 
