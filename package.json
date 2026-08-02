@@ -2,16 +2,17 @@
   "name": "birkat-avraham",
   "private": true,
   "version": "1.0.0",
-  "description": "אתר מוסדות \"ברכת אברהם\" — Phase 1 Interactive Demo",
+  "description": "אתר מוסדות \"ברכת אברהם\" — תורה, תפילה וחסד",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist --dotfiles"
+    "deploy": "npm run build && firebase deploy --only hosting",
+    "deploy:all": "npm run build && firebase deploy",
+    "deploy:rules": "firebase deploy --only firestore:rules,storage"
   },
-  "homepage": "https://barakwork95.github.io/birkat-avraham/",
+  "homepage": "https://birkat-avraham.com",
   "dependencies": {
     "firebase": "^12.17.0",
     "react": "^18.3.1",
