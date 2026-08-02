@@ -89,9 +89,10 @@ export const COLLECTIONS = {
       { key: 'caption', label: 'תיאור', type: 'textarea' },
       { key: 'stat', label: 'מספר בולט', type: 'text' },
       { key: 'statLabel', label: 'תווית המספר', type: 'text' },
+      { key: 'image', label: 'תמונה', type: 'image' },
     ],
     defaults: {
-      title: '', caption: '', stat: '', statLabel: '',
+      title: '', caption: '', stat: '', statLabel: '', image: '',
       gradient: 'linear-gradient(135deg, #1A1110 0%, #4a2f1e 55%, #B8860B 100%)',
     },
   },

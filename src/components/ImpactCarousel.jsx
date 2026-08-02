@@ -53,11 +53,15 @@ export default function ImpactCarousel() {
       >
         {impactSlides.map((s) => (
           <div key={s.id} className="relative min-w-full">
-            <div className="aspect-[4/3] w-full sm:aspect-[16/10]" style={{ background: s.gradient }}>
-              {/* watermark hebrew letter */}
-              <span className="pointer-events-none absolute inset-0 grid place-items-center font-heading text-[10rem] text-white/5 sm:text-[14rem]">
-                ב
-              </span>
+            <div className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-[16/10]" style={{ background: s.gradient }}>
+              {s.image ? (
+                <img src={s.image} alt={s.title} className="absolute inset-0 h-full w-full object-cover" />
+              ) : (
+                /* watermark hebrew letter (only when there's no photo) */
+                <span className="pointer-events-none absolute inset-0 grid place-items-center font-heading text-[10rem] text-white/5 sm:text-[14rem]">
+                  ב
+                </span>
+              )}
             </div>
             {/* Caption overlay */}
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/85 via-ink/40 to-transparent p-6 sm:p-8">
