@@ -1,15 +1,14 @@
 /**
- * compressImage — read a File, downscale it to fit within `maxDim`, and return
- * a JPEG data URL. Keeps uploaded images small enough to live comfortably in
- * localStorage (demo) or a Firestore document (< ~900KB) until Firebase Storage
- * is wired, at which point this same data URL can be uploaded and swapped for a
- * download URL with no change to the editor UI.
- *
- * @param {File} file
- * @param {{ maxDim?: number, quality?: number }} [opts]
- * @returns {Promise<string>} data URL (image/jpeg)
+ * Image compression helpers. A single canvas-based core downscales an image to
+ * fit within `maxDim`; callers pick the output they need:
+ *   - compressImage()      → JPEG data URL (local mode; stored inline)
+ *   - compressImageToBlob() → JPEG Blob    (firebase mode; uploaded to Storage)
  */
-export function compressImage(file, { maxDim = 1200, quality = 0.82 } = {}) {
+
+const DEFAULTS = { maxDim: 1200, quality: 0.82 }
+
+/** Load a File into a downscaled <canvas>. */
+function toCanvas(file, maxDim) {
   return new Promise((resolve, reject) => {
     if (!file || !file.type?.startsWith('image/')) {
       reject(new Error('הקובץ אינו תמונה'))
@@ -22,17 +21,41 @@ export function compressImage(file, { maxDim = 1200, quality = 0.82 } = {}) {
       img.onerror = () => reject(new Error('טעינת התמונה נכשלה'))
       img.onload = () => {
         const scale = Math.min(1, maxDim / Math.max(img.width, img.height))
-        const w = Math.round(img.width * scale)
-        const h = Math.round(img.height * scale)
         const canvas = document.createElement('canvas')
-        canvas.width = w
-        canvas.height = h
-        const ctx = canvas.getContext('2d')
-        ctx.drawImage(img, 0, 0, w, h)
-        resolve(canvas.toDataURL('image/jpeg', quality))
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+        resolve(canvas)
       }
       img.src = reader.result
     }
     reader.readAsDataURL(file)
+  })
+}
+
+/**
+ * Compress a File to a JPEG data URL (kept small enough to live inline in
+ * localStorage / a Firestore document).
+ * @returns {Promise<string>} data URL (image/jpeg)
+ */
+export async function compressImage(file, opts = {}) {
+  const { maxDim, quality } = { ...DEFAULTS, ...opts }
+  const canvas = await toCanvas(file, maxDim)
+  return canvas.toDataURL('image/jpeg', quality)
+}
+
+/**
+ * Compress a File to a JPEG Blob (for uploading to Firebase Storage).
+ * @returns {Promise<Blob>}
+ */
+export async function compressImageToBlob(file, opts = {}) {
+  const { maxDim, quality } = { ...DEFAULTS, ...opts }
+  const canvas = await toCanvas(file, maxDim)
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error('דחיסת התמונה נכשלה'))),
+      'image/jpeg',
+      quality,
+    )
   })
 }

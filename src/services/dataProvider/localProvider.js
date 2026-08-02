@@ -16,6 +16,7 @@ import {
   SINGLETONS,
   SINGLETON_KEYS,
 } from '../../config/collections'
+import { compressImage } from '../../lib/compressImage'
 
 const PREFIX = 'ba:'
 const EVENT = 'ba:data-change'
@@ -79,6 +80,14 @@ export const localProvider = {
   async getAll(name) {
     return read(name)
   },
+
+  /** Local mode has no object store — inline the compressed image as a data URL. */
+  async uploadImage(file) {
+    return compressImage(file)
+  },
+
+  /** No-op: local data-URL images have nothing external to delete. */
+  async deleteImage() {},
 
   async create(name, data) {
     const items = read(name)

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { COLLECTIONS } from '../config/collections'
 import { provider } from '../services/dataProvider'
-import { compressImage } from '../lib/compressImage'
 
 /**
  * CollectionEditor — generic add/edit form, rendered from the collection schema.
@@ -16,6 +15,7 @@ export default function CollectionEditor() {
   const [form, setForm] = useState(null)
   const [errors, setErrors] = useState({})
   const [busy, setBusy] = useState(false)
+  const [uploading, setUploading] = useState(null) // key currently uploading
 
   useEffect(() => {
     if (isNew) {
@@ -34,11 +34,25 @@ export default function CollectionEditor() {
 
   const onPickImage = async (key, file) => {
     if (!file) return
+    setErrors((e) => ({ ...e, [key]: undefined }))
+    setUploading(key)
+    const previous = form[key]
     try {
-      set(key, await compressImage(file))
+      const url = await provider.uploadImage(file, name)
+      set(key, url)
+      // Clean up the replaced image (best-effort; no-op in local mode).
+      if (previous) provider.deleteImage?.(previous)
     } catch (err) {
       setErrors((e) => ({ ...e, [key]: err.message || 'העלאת התמונה נכשלה' }))
+    } finally {
+      setUploading(null)
     }
+  }
+
+  const onRemoveImage = (key) => {
+    const previous = form[key]
+    set(key, '')
+    if (previous) provider.deleteImage?.(previous)
   }
 
   const validate = () => {
@@ -112,7 +126,11 @@ export default function CollectionEditor() {
               )}
               {f.type === 'image' && (
                 <div className="flex items-center gap-4">
-                  {form[f.key] ? (
+                  {uploading === f.key ? (
+                    <div className="grid h-20 w-20 place-items-center rounded-xl bg-cream ring-1 ring-ink/10">
+                      <span className="h-6 w-6 animate-spin rounded-full border-2 border-gold/40 border-t-gold" />
+                    </div>
+                  ) : form[f.key] ? (
                     <img src={form[f.key]} alt="" className="h-20 w-20 rounded-xl object-cover ring-1 ring-ink/10" />
                   ) : (
                     <div className="grid h-20 w-20 place-items-center rounded-xl bg-cream text-xs text-ink-muted ring-1 ring-ink/10">
@@ -120,17 +138,18 @@ export default function CollectionEditor() {
                     </div>
                   )}
                   <div className="flex flex-col gap-2">
-                    <label className="btn-outline cursor-pointer text-sm">
-                      {form[f.key] ? 'החלפת תמונה' : 'העלאת תמונה'}
+                    <label className={`btn-outline cursor-pointer text-sm ${uploading === f.key ? 'pointer-events-none opacity-60' : ''}`}>
+                      {uploading === f.key ? 'מעלה…' : form[f.key] ? 'החלפת תמונה' : 'העלאת תמונה'}
                       <input
                         type="file"
                         accept="image/*"
                         className="hidden"
+                        disabled={uploading === f.key}
                         onChange={(e) => onPickImage(f.key, e.target.files?.[0])}
                       />
                     </label>
-                    {form[f.key] && (
-                      <button type="button" onClick={() => set(f.key, '')} className="text-sm text-red-600 hover:underline">
+                    {form[f.key] && uploading !== f.key && (
+                      <button type="button" onClick={() => onRemoveImage(f.key)} className="text-sm text-red-600 hover:underline">
                         הסרה
                       </button>
                     )}
@@ -144,7 +163,7 @@ export default function CollectionEditor() {
         </div>
 
         <div className="mt-6 flex gap-2">
-          <button onClick={save} disabled={busy} className="btn-primary disabled:opacity-70">
+          <button onClick={save} disabled={busy || uploading !== null} className="btn-primary disabled:opacity-70">
             {busy ? 'שומר…' : 'שמירה'}
           </button>
           <button onClick={() => navigate(backTo)} className="btn-outline">

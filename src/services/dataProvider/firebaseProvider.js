@@ -24,7 +24,9 @@ import {
   query,
   orderBy,
 } from 'firebase/firestore'
-import { db } from '../firebase'
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
+import { db, storage } from '../firebase'
+import { compressImageToBlob } from '../../lib/compressImage'
 
 const SINGLETON_COLLECTION = 'singletons'
 
@@ -49,6 +51,25 @@ export const firebaseProvider = {
     const items = sortByOrder(mapDocs(snap))
     listCache[name] = items
     return items
+  },
+
+  /** Compress the image and upload it to Storage; return its public download URL. */
+  async uploadImage(file, pathPrefix = 'images') {
+    const blob = await compressImageToBlob(file)
+    const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`
+    const objectRef = ref(storage, `${pathPrefix}/${name}`)
+    await uploadBytes(objectRef, blob, { contentType: 'image/jpeg' })
+    return getDownloadURL(objectRef)
+  },
+
+  /** Best-effort delete of a previously uploaded Storage image (ignores non-Storage URLs). */
+  async deleteImage(url) {
+    if (!url || !/firebasestorage\.googleapis\.com|\.firebasestorage\.app/.test(url)) return
+    try {
+      await deleteObject(ref(storage, url))
+    } catch {
+      /* already gone / not ours — ignore */
+    }
   },
 
   async create(name, data) {
