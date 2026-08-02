@@ -64,10 +64,12 @@ export default function Footer({ onDonate }) {
               <PinIcon className="h-4 w-4 text-gold-light" />
               <span className="text-white/70">{info.address}</span>
             </li>
-            <li className="flex items-center gap-2">
-              <PhoneIcon className="h-4 w-4 text-gold-light" />
-              <a href={`tel:${info.phone.replace(/\D/g, '')}`} dir="ltr" className="text-white/70 hover:text-gold-light">{info.phone}</a>
-            </li>
+            {info.phone && (
+              <li className="flex items-center gap-2">
+                <PhoneIcon className="h-4 w-4 text-gold-light" />
+                <a href={`tel:${info.phone.replace(/\D/g, '')}`} dir="ltr" className="text-white/70 hover:text-gold-light">{info.phone}</a>
+              </li>
+            )}
             {info.kollelEmail && (
               <li className="flex items-center gap-2">
                 <MailIcon className="h-4 w-4 text-gold-light" />

@@ -1,55 +1,142 @@
 /**
- * firebaseProvider — TEMPLATE (not yet wired).
+ * firebaseProvider — live Firestore implementation of the data provider.
  *
- * This mirrors localProvider's interface exactly, so switching to Firebase is a
- * one-line change in ./index.js once the project exists. It is intentionally
- * NOT imported anywhere yet, so the app builds without the firebase SDK.
+ * Mirrors localProvider's interface exactly, so switching is a one-line change
+ * in ./index.js and no UI component changes. Content collections are stored as
+ * Firestore collections of the same name; each doc carries an `order` number so
+ * the admin can reorder items. Singletons (e.g. institution info) live under the
+ * `singletons` collection, one doc per name.
  *
- * TO ACTIVATE (Firebase sprint):
- *   1. npm i firebase
- *   2. fill .env (see .env.example) with your Firebase web config
- *   3. uncomment the imports + body below
- *   4. in ./index.js, export firebaseProvider when VITE_DATA_PROVIDER === 'firebase'
+ * A small in-memory cache backs the *Sync getters so the public site can render
+ * immediately from the last snapshot (useCollection/useInfo read sync first,
+ * then subscribe).
  */
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  addDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  orderBy,
+} from 'firebase/firestore'
+import { db } from '../firebase'
 
-// import { initializeApp } from 'firebase/app'
-// import {
-//   getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, onSnapshot,
-// } from 'firebase/firestore'
-//
-// const firebaseConfig = {
-//   apiKey: import.meta.env.VITE_FB_API_KEY,
-//   authDomain: import.meta.env.VITE_FB_AUTH_DOMAIN,
-//   projectId: import.meta.env.VITE_FB_PROJECT_ID,
-//   storageBucket: import.meta.env.VITE_FB_STORAGE_BUCKET,
-//   messagingSenderId: import.meta.env.VITE_FB_SENDER_ID,
-//   appId: import.meta.env.VITE_FB_APP_ID,
-// }
-// const app = initializeApp(firebaseConfig)
-// const db = getFirestore(app)
-//
-// export const firebaseProvider = {
-//   mode: 'firebase',
-//   _cache: {},
-//   getAllSync(name) { return this._cache[name] || [] },
-//   async getAll(name) {
-//     const snap = await getDocs(collection(db, name))
-//     const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-//     this._cache[name] = items
-//     return items
-//   },
-//   async create(name, data) { const ref = await addDoc(collection(db, name), data); return { id: ref.id, ...data } },
-//   async update(name, id, patch) { await updateDoc(doc(db, name, id), patch) },
-//   async remove(name, id) { await deleteDoc(doc(db, name, id)) },
-//   async move() { /* implement via an `order` field + updateDoc */ },
-//   async reset() { /* optional: re-seed from mockData */ },
-//   subscribe(name, cb) {
-//     return onSnapshot(collection(db, name), (snap) => {
-//       const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-//       this._cache[name] = items
-//       cb(items)
-//     })
-//   },
-// }
+const SINGLETON_COLLECTION = 'singletons'
 
-export const firebaseProvider = null
+const listCache = {} // name -> items[]
+const singleCache = {} // name -> object
+
+const sortByOrder = (items) =>
+  [...items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
+const mapDocs = (snap) => snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+
+export const firebaseProvider = {
+  mode: 'firebase',
+
+  // ── Collections ────────────────────────────────────────────────
+  getAllSync(name) {
+    return listCache[name] || []
+  },
+
+  async getAll(name) {
+    const snap = await getDocs(collection(db, name))
+    const items = sortByOrder(mapDocs(snap))
+    listCache[name] = items
+    return items
+  },
+
+  async create(name, data) {
+    // Append to the end: order = current max + 1.
+    const current = listCache[name] || (await this.getAll(name))
+    const maxOrder = current.reduce((m, i) => Math.max(m, i.order ?? 0), 0)
+    const item = { ...data, order: maxOrder + 1 }
+    const ref = await addDoc(collection(db, name), item)
+    return { id: ref.id, ...item }
+  },
+
+  async update(name, id, patch) {
+    await updateDoc(doc(db, name, id), patch)
+    return { id, ...patch }
+  },
+
+  async remove(name, id) {
+    await deleteDoc(doc(db, name, id))
+  },
+
+  /** Move an item up/down by one position (dir = -1 | 1) by swapping order values. */
+  async move(name, id, dir) {
+    const items = sortByOrder(listCache[name] || (await this.getAll(name)))
+    const idx = items.findIndex((i) => i.id === id)
+    const next = idx + dir
+    if (idx < 0 || next < 0 || next >= items.length) return
+    const a = items[idx]
+    const b = items[next]
+    const aOrder = a.order ?? idx
+    const bOrder = b.order ?? next
+    await Promise.all([
+      updateDoc(doc(db, name, a.id), { order: bOrder }),
+      updateDoc(doc(db, name, b.id), { order: aOrder }),
+    ])
+  },
+
+  /** No-op for Firestore (re-seeding is a one-time server script, not a client action). */
+  async reset() {
+    /* intentionally not supported live — see scripts/seedFirestore.mjs */
+  },
+
+  subscribe(name, cb) {
+    const q = query(collection(db, name), orderBy('order'))
+    return onSnapshot(
+      q,
+      (snap) => {
+        const items = mapDocs(snap)
+        listCache[name] = items
+        cb(items)
+      },
+      // If a doc is missing `order`, the ordered query can error — fall back to
+      // an unordered listen so the site keeps working.
+      () =>
+        onSnapshot(collection(db, name), (snap) => {
+          const items = sortByOrder(mapDocs(snap))
+          listCache[name] = items
+          cb(items)
+        }),
+    )
+  },
+
+  // ── Singletons ─────────────────────────────────────────────────
+  getSingletonSync(name) {
+    return singleCache[name] || {}
+  },
+
+  async getSingleton(name) {
+    const snap = await getDoc(doc(db, SINGLETON_COLLECTION, name))
+    const data = snap.exists() ? snap.data() : {}
+    singleCache[name] = data
+    return data
+  },
+
+  async setSingleton(name, data) {
+    await setDoc(doc(db, SINGLETON_COLLECTION, name), data, { merge: true })
+    singleCache[name] = data
+    return data
+  },
+
+  async resetSingleton() {
+    /* not supported live — see scripts/seedFirestore.mjs */
+  },
+
+  subscribeSingleton(name, cb) {
+    return onSnapshot(doc(db, SINGLETON_COLLECTION, name), (snap) => {
+      const data = snap.exists() ? snap.data() : {}
+      singleCache[name] = data
+      cb(data)
+    })
+  },
+}
