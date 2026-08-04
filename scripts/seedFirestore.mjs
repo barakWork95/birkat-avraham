@@ -10,7 +10,11 @@
  *   SEED_EMAIL="kolelbirkatavraham@gmail.com" SEED_PASSWORD="•••" \
  *     node scripts/seedFirestore.mjs
  *
- * Prerequisite: publish firestore.rules first (writes are denied otherwise).
+ * Target a different environment with ENV_FILE (defaults to .env), e.g. staging:
+ *   ENV_FILE=.env.staging SEED_EMAIL="…" SEED_PASSWORD="…" \
+ *     node scripts/seedFirestore.mjs
+ *
+ * Prerequisite: publish that project's firestore.rules first (writes denied otherwise).
  */
 import { readFileSync } from 'node:fs'
 import { initializeApp } from 'firebase/app'
@@ -19,16 +23,28 @@ import { initializeFirestore, doc, setDoc } from 'firebase/firestore'
 import * as mock from '../src/data/mockData.js'
 import { COLLECTIONS, SINGLETONS } from '../src/config/collections.js'
 
-// Load VITE_FB_* values from .env (public identifiers).
-const env = Object.fromEntries(
-  readFileSync(new URL('../.env', import.meta.url), 'utf8')
-    .split('\n')
-    .filter((l) => l && !l.trimStart().startsWith('#') && l.includes('='))
-    .map((l) => {
-      const i = l.indexOf('=')
-      return [l.slice(0, i).trim(), l.slice(i + 1).trim()]
-    }),
-)
+// Load VITE_FB_* values from the target env file (public identifiers).
+// Staging note: .env.staging only overrides Firebase keys, so we layer it on
+// top of .env to inherit any shared values.
+const parseEnv = (relPath) => {
+  try {
+    return Object.fromEntries(
+      readFileSync(new URL(`../${relPath}`, import.meta.url), 'utf8')
+        .split('\n')
+        .filter((l) => l && !l.trimStart().startsWith('#') && l.includes('='))
+        .map((l) => {
+          const i = l.indexOf('=')
+          return [l.slice(0, i).trim(), l.slice(i + 1).trim()]
+        }),
+    )
+  } catch {
+    return {}
+  }
+}
+
+const envFile = process.env.ENV_FILE || '.env'
+const env = { ...parseEnv('.env'), ...parseEnv(envFile) }
+console.log(`Using Firebase project: ${env.VITE_FB_PROJECT_ID} (from ${envFile})`)
 
 const firebaseConfig = {
   apiKey: env.VITE_FB_API_KEY,

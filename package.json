@@ -7,10 +7,14 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:staging": "vite build --mode staging",
     "preview": "vite preview",
-    "deploy": "npm run build && firebase deploy --only hosting",
-    "deploy:all": "npm run build && firebase deploy",
-    "deploy:rules": "firebase deploy --only firestore:rules,storage"
+    "login": "npx firebase-tools login",
+    "deploy": "npm run build && npx firebase-tools deploy --only hosting --project production",
+    "deploy:all": "npm run build && npx firebase-tools deploy --project production",
+    "deploy:rules": "npx firebase-tools deploy --only firestore:rules,storage --project production",
+    "deploy:preview": "npm run build && npx firebase-tools hosting:channel:deploy preview --project production --expires 7d",
+    "deploy:staging": "npm run build:staging && npx firebase-tools deploy --project staging"
   },
   "homepage": "https://birkat-avraham.com",
   "dependencies": {

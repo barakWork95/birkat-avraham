@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "birkat-avraham"
+    "default": "birkat-avraham",
+    "production": "birkat-avraham",
+    "staging": "birkat-avraham-staging"
   }
 }
