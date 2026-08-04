@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import TopBar from './components/TopBar'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
@@ -10,17 +10,53 @@ import Events from './components/Events'
 import Location from './components/Location'
 import Footer from './components/Footer'
 import { HeartIcon } from './components/ui/Icons'
+import { provider } from './services/dataProvider'
+
+/** A branded splash shown until the above-the-fold institution info is loaded. */
+function BootSplash() {
+  return (
+    <div className="grid min-h-screen place-items-center bg-cream">
+      <img
+        src={`${import.meta.env.BASE_URL}logo.png`}
+        alt="ברכת אברהם"
+        className="h-16 w-auto animate-pulse"
+      />
+    </div>
+  )
+}
 
 /**
  * App — top-level composition. A single `scrollToDonate` handler is passed
  * to every CTA so all "תרומה" buttons converge on the donation section.
+ *
+ * We gate the first paint on the institution-info singleton so the hero never
+ * flashes with empty name/rav fields while Firestore loads. This waits on ONE
+ * small doc (not all content), and falls back to rendering after a short
+ * timeout so a slow/failed read can never leave the splash stuck.
  */
 export default function App() {
   const donateRef = useRef(null)
+  const [ready, setReady] = useState(
+    () => Object.keys(provider.getSingletonSync?.('info') || {}).length > 0,
+  )
+
+  useEffect(() => {
+    if (ready) return
+    let alive = true
+    const done = () => alive && setReady(true)
+    provider.getSingleton('info').then(done).catch(done)
+    const timer = setTimeout(done, 3000) // safety net
+    return () => {
+      alive = false
+      clearTimeout(timer)
+    }
+  }, [ready])
 
   const scrollToDonate = useCallback(() => {
     donateRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [])
+
+  if (!ready) return <BootSplash />
 
   return (
     <div className="min-h-screen">
