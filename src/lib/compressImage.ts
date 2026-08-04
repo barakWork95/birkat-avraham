@@ -5,10 +5,15 @@
  *   - compressImageToBlob() → JPEG Blob    (firebase mode; uploaded to Storage)
  */
 
+interface CompressOpts {
+  maxDim?: number
+  quality?: number
+}
+
 const DEFAULTS = { maxDim: 1200, quality: 0.82 }
 
 /** Load a File into a downscaled <canvas>. */
-function toCanvas(file, maxDim) {
+function toCanvas(file: File, maxDim: number): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     if (!file || !file.type?.startsWith('image/')) {
       reject(new Error('הקובץ אינו תמונה'))
@@ -24,10 +29,10 @@ function toCanvas(file, maxDim) {
         const canvas = document.createElement('canvas')
         canvas.width = Math.round(img.width * scale)
         canvas.height = Math.round(img.height * scale)
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
         resolve(canvas)
       }
-      img.src = reader.result
+      img.src = reader.result as string
     }
     reader.readAsDataURL(file)
   })
@@ -36,19 +41,15 @@ function toCanvas(file, maxDim) {
 /**
  * Compress a File to a JPEG data URL (kept small enough to live inline in
  * localStorage / a Firestore document).
- * @returns {Promise<string>} data URL (image/jpeg)
  */
-export async function compressImage(file, opts = {}) {
+export async function compressImage(file: File, opts: CompressOpts = {}): Promise<string> {
   const { maxDim, quality } = { ...DEFAULTS, ...opts }
   const canvas = await toCanvas(file, maxDim)
   return canvas.toDataURL('image/jpeg', quality)
 }
 
-/**
- * Compress a File to a JPEG Blob (for uploading to Firebase Storage).
- * @returns {Promise<Blob>}
- */
-export async function compressImageToBlob(file, opts = {}) {
+/** Compress a File to a JPEG Blob (for uploading to Firebase Storage). */
+export async function compressImageToBlob(file: File, opts: CompressOpts = {}): Promise<Blob> {
   const { maxDim, quality } = { ...DEFAULTS, ...opts }
   const canvas = await toCanvas(file, maxDim)
   return new Promise((resolve, reject) => {

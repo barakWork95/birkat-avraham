@@ -1,35 +1,55 @@
-import { useMemo, useState } from 'react'
-import { buildNedarimPayload, handleNedarimDonation } from '../services/nedarimPlus'
+import { useMemo, useState, type RefObject } from 'react'
+import {
+  buildNedarimPayload,
+  handleNedarimDonation,
+  type DonationResult,
+  type DonationType,
+  type NedarimPayload,
+} from '../services/nedarimPlus'
 import { useCollection } from './useCollection'
+import type { DonationTier } from '../types/models'
+
+type DonateFn = (
+  payload: NedarimPayload,
+  ctx: { iframe?: HTMLIFrameElement | null },
+) => Promise<DonationResult>
+
+interface UseDonationOpts {
+  onDonate?: DonateFn
+  iframeRef?: RefObject<HTMLIFrameElement | null>
+}
+
+type Status = 'idle' | 'submitting' | 'success' | 'error'
+
+interface FormErrors {
+  amount?: string
+  fullName?: string
+  email?: string
+}
 
 /**
  * useDonation — donation form state, validation & submission.
  *
- * Captured state: amount, donationType ('one-time' | 'recurring'),
- * fullName, email, dedicationNote.
- *
- * On submit it builds a Nedarim Plus payload and hands it to the
- * `onDonate` callback (defaults to the Nedarim Plus service), passing the live
- * iframe element (from `iframeRef`) so the service can charge through it.
- *
- * @param {{ onDonate?: (payload:object, ctx:{iframe?:HTMLIFrameElement}) => Promise<{success:boolean}>, iframeRef?: {current: HTMLIFrameElement|null} }} [opts]
+ * On submit it builds a Nedarim Plus payload and hands it to `onDonate`
+ * (defaults to the Nedarim Plus service), passing the live iframe element so the
+ * service can charge through it. Swap the callback for tests/alternate gateways.
  */
-export function useDonation({ onDonate = handleNedarimDonation, iframeRef } = {}) {
-  const tiers = useCollection('donationTiers')
+export function useDonation({ onDonate = handleNedarimDonation, iframeRef }: UseDonationOpts = {}) {
+  const tiers = useCollection<DonationTier>('donationTiers')
   const [amount, setAmount] = useState(180)
   const [custom, setCustom] = useState('')
-  const [donationType, setDonationType] = useState('one-time') // 'one-time' | 'recurring'
+  const [donationType, setDonationType] = useState<DonationType>('one-time')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [dedicationNote, setDedicationNote] = useState('')
-  const [status, setStatus] = useState('idle') // 'idle' | 'submitting' | 'success' | 'error'
-  const [errors, setErrors] = useState({})
-  const [lastResult, setLastResult] = useState(null)
+  const [status, setStatus] = useState<Status>('idle')
+  const [errors, setErrors] = useState<FormErrors>({})
+  const [lastResult, setLastResult] = useState<DonationResult | null>(null)
 
   const effectiveAmount = custom ? Number(custom) : amount
 
-  const validate = () => {
-    const e = {}
+  const validate = (): boolean => {
+    const e: FormErrors = {}
     if (!effectiveAmount || effectiveAmount < 1) e.amount = 'נא לבחור סכום תרומה'
     if (!fullName.trim()) e.fullName = 'נא להזין שם'
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'כתובת אימייל אינה תקינה'
@@ -37,15 +57,11 @@ export function useDonation({ onDonate = handleNedarimDonation, iframeRef } = {}
     return Object.keys(e).length === 0
   }
 
-  const selectTier = (value) => {
+  const selectTier = (value: number) => {
     setCustom('')
     setAmount(value)
   }
 
-  /**
-   * handleNedarimDonation — builds the payload from current form state and
-   * triggers the donation callback (Nedarim Plus postMessage in production).
-   */
   const submit = async () => {
     if (!validate()) return
     setStatus('submitting')
@@ -81,25 +97,20 @@ export function useDonation({ onDonate = handleNedarimDonation, iframeRef } = {}
   )
 
   return {
-    // options
     tiers,
-    // amount
     amount,
     custom,
     setCustom,
     effectiveAmount,
     selectTier,
-    // type
     donationType,
     setDonationType,
-    // donor fields
     fullName,
     setFullName,
     email,
     setEmail,
     dedicationNote,
     setDedicationNote,
-    // status
     status,
     errors,
     lastResult,

@@ -6,13 +6,35 @@
  *  Add a collection here → it appears in the admin sidebar automatically.
  *
  *  `seedKey` maps each collection to its export in src/data/mockData.js
- *  (used to seed local mode, and later to seed Firestore once on setup).
- *
- *  Field types: text | textarea | number | boolean | select
+ *  (used to seed local mode, and the one-time Firestore seed script).
  * ------------------------------------------------------------------
  */
 
-export const COLLECTIONS = {
+export type FieldType = 'text' | 'textarea' | 'number' | 'boolean' | 'select' | 'image'
+
+export interface FieldSchema {
+  key: string
+  label: string
+  type: FieldType
+  required?: boolean
+  options?: string[]
+}
+
+export interface CollectionConfig {
+  label: string
+  seedKey: string
+  itemTitle: (item: any) => string
+  itemSubtitle?: (item: any) => string
+  fields: FieldSchema[]
+  defaults: Record<string, unknown>
+}
+
+export interface SingletonConfig {
+  label: string
+  seedKey: string
+}
+
+export const COLLECTIONS: Record<string, CollectionConfig> = {
   leadership: {
     label: 'אנשי קשר',
     seedKey: 'leadershipData',
@@ -59,10 +81,16 @@ export const COLLECTIONS = {
       { key: 'image', label: 'תמונה', type: 'image' },
       { key: 'videoUrl', label: 'קישור וידאו (למדיה מסוג וידאו)', type: 'text' },
     ],
-    // Photos uploaded here are stored as compressed data URLs (works today in
-    // local mode). Items with no uploaded image fall back to the gradient
-    // placeholder. Firebase Storage upgrade: upload the file, store its URL here.
-    defaults: { title: '', category: 'שיעורים', type: 'photo', image: '', videoUrl: '', gradient: 'linear-gradient(135deg,#1A1110,#B8860B)' },
+    // Photos are uploaded to Storage (or inlined as data URLs in local mode).
+    // Items with no image fall back to the gradient placeholder.
+    defaults: {
+      title: '',
+      category: 'שיעורים',
+      type: 'photo',
+      image: '',
+      videoUrl: '',
+      gradient: 'linear-gradient(135deg,#1A1110,#B8860B)',
+    },
   },
 
   donationTiers: {
@@ -92,7 +120,11 @@ export const COLLECTIONS = {
       { key: 'image', label: 'תמונה', type: 'image' },
     ],
     defaults: {
-      title: '', caption: '', stat: '', statLabel: '', image: '',
+      title: '',
+      caption: '',
+      stat: '',
+      statLabel: '',
+      image: '',
       gradient: 'linear-gradient(135deg, #1A1110 0%, #4a2f1e 55%, #B8860B 100%)',
     },
   },
@@ -128,10 +160,8 @@ export const COLLECTIONS = {
 
 export const COLLECTION_KEYS = Object.keys(COLLECTIONS)
 
-/**
- * SINGLETONS — one-off documents (not lists). Edited via a dedicated screen.
- */
-export const SINGLETONS = {
+/** SINGLETONS — one-off documents (not lists). Edited via a dedicated screen. */
+export const SINGLETONS: Record<string, SingletonConfig> = {
   info: {
     label: 'פרטי מוסד',
     seedKey: 'institutionInfo',

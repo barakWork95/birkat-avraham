@@ -1,15 +1,11 @@
 /**
- * firebaseProvider — live Firestore implementation of the data provider.
+ * firebaseProvider — live Firestore implementation of the DataProvider contract.
  *
- * Mirrors localProvider's interface exactly, so switching is a one-line change
- * in ./index.js and no UI component changes. Content collections are stored as
- * Firestore collections of the same name; each doc carries an `order` number so
- * the admin can reorder items. Singletons (e.g. institution info) live under the
- * `singletons` collection, one doc per name.
- *
- * A small in-memory cache backs the *Sync getters so the public site can render
- * immediately from the last snapshot (useCollection/useInfo read sync first,
- * then subscribe).
+ * Content collections are stored as Firestore collections of the same name; each
+ * doc carries an `order` number so the admin can reorder items. Singletons (e.g.
+ * institution info) live under the `singletons` collection, one doc per name. A
+ * small in-memory cache backs the *Sync getters so the public site can render
+ * immediately from the last snapshot (useCollection/useInfo read sync, then subscribe).
  */
 import {
   collection,
@@ -23,20 +19,24 @@ import {
   onSnapshot,
   query,
   orderBy,
+  type QuerySnapshot,
 } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { db, storage } from '../firebase'
 import { compressImageToBlob } from '../../lib/compressImage'
+import type { Item, Singleton } from '../../types/models'
+import type { DataProvider } from './types'
 
 const SINGLETON_COLLECTION = 'singletons'
 
-const listCache = {} // name -> items[]
-const singleCache = {} // name -> object
+const listCache: Record<string, Item[]> = {}
+const singleCache: Record<string, Singleton> = {}
 
-const sortByOrder = (items) =>
+const sortByOrder = (items: Item[]): Item[] =>
   [...items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
-const mapDocs = (snap) => snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+const mapDocs = (snap: QuerySnapshot): Item[] =>
+  snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 
 export const firebaseProvider = {
   mode: 'firebase',
@@ -56,8 +56,8 @@ export const firebaseProvider = {
   /** Compress the image and upload it to Storage; return its public download URL. */
   async uploadImage(file, pathPrefix = 'images') {
     const blob = await compressImageToBlob(file)
-    const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`
-    const objectRef = ref(storage, `${pathPrefix}/${name}`)
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`
+    const objectRef = ref(storage, `${pathPrefix}/${filename}`)
     await uploadBytes(objectRef, blob, { contentType: 'image/jpeg' })
     return getDownloadURL(objectRef)
   },
@@ -76,9 +76,9 @@ export const firebaseProvider = {
     // Append to the end: order = current max + 1.
     const current = listCache[name] || (await this.getAll(name))
     const maxOrder = current.reduce((m, i) => Math.max(m, i.order ?? 0), 0)
-    const item = { ...data, order: maxOrder + 1 }
-    const ref = await addDoc(collection(db, name), item)
-    return { id: ref.id, ...item }
+    const item: Item = { id: '', ...data, order: maxOrder + 1 }
+    const docRef = await addDoc(collection(db, name), { ...data, order: maxOrder + 1 })
+    return { ...item, id: docRef.id }
   },
 
   async update(name, id, patch) {
@@ -122,12 +122,13 @@ export const firebaseProvider = {
       },
       // If a doc is missing `order`, the ordered query can error — fall back to
       // an unordered listen so the site keeps working.
-      () =>
+      () => {
         onSnapshot(collection(db, name), (snap) => {
           const items = sortByOrder(mapDocs(snap))
           listCache[name] = items
           cb(items)
-        }),
+        })
+      },
     )
   },
 
@@ -138,7 +139,7 @@ export const firebaseProvider = {
 
   async getSingleton(name) {
     const snap = await getDoc(doc(db, SINGLETON_COLLECTION, name))
-    const data = snap.exists() ? snap.data() : {}
+    const data = (snap.exists() ? snap.data() : {}) as Singleton
     singleCache[name] = data
     return data
   },
@@ -151,13 +152,14 @@ export const firebaseProvider = {
 
   async resetSingleton() {
     /* not supported live — see scripts/seedFirestore.mjs */
+    return {}
   },
 
   subscribeSingleton(name, cb) {
     return onSnapshot(doc(db, SINGLETON_COLLECTION, name), (snap) => {
-      const data = snap.exists() ? snap.data() : {}
+      const data = (snap.exists() ? snap.data() : {}) as Singleton
       singleCache[name] = data
       cb(data)
     })
   },
-}
+} satisfies DataProvider

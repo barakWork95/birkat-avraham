@@ -1,22 +1,20 @@
 /**
  * localProvider — a fully working data layer backed by localStorage.
  *
- * It lets the ENTIRE admin panel + public site run today, with no backend:
- * collections are seeded once from src/data/mockData.js, then all CRUD writes
- * persist to localStorage and notify subscribers (so edits reflect live in the
- * same tab, and across tabs via the 'storage' event).
- *
- * The Firebase provider (firebaseProvider.js) implements this same interface,
- * so switching is a one-line change in ./index.js — no component changes.
+ * It lets the ENTIRE admin panel + public site run with no backend: collections
+ * are seeded once from src/data/mockData, then all CRUD writes persist to
+ * localStorage and notify subscribers (edits reflect live in the same tab, and
+ * across tabs via the 'storage' event). Mirrors firebaseProvider via the shared
+ * DataProvider contract, so switching is a one-line change in ./index.ts.
  */
 import * as mock from '../../data/mockData'
-import {
-  COLLECTIONS,
-  COLLECTION_KEYS,
-  SINGLETONS,
-  SINGLETON_KEYS,
-} from '../../config/collections'
+import { COLLECTIONS, COLLECTION_KEYS, SINGLETONS, SINGLETON_KEYS } from '../../config/collections'
 import { compressImage } from '../../lib/compressImage'
+import type { Item, Singleton } from '../../types/models'
+import type { DataProvider } from './types'
+
+// mockData exports are looked up by dynamic seedKey, so treat it as a record.
+const mockRecord = mock as Record<string, any>
 
 const PREFIX = 'ba:'
 const EVENT = 'ba:data-change'
@@ -24,25 +22,25 @@ const EVENT = 'ba:data-change'
 // content after a deploy (re-seeds from mockData; discards local demo edits).
 const SEED_VERSION = '2026-08-02a'
 
-const keyFor = (name) => `${PREFIX}${name}`
-const singleKey = (name) => `${PREFIX}single:${name}`
+const keyFor = (name: string) => `${PREFIX}${name}`
+const singleKey = (name: string) => `${PREFIX}single:${name}`
 
-function read(name) {
+function read(name: string): Item[] {
   try {
     const raw = localStorage.getItem(keyFor(name))
-    return raw ? JSON.parse(raw) : []
+    return raw ? (JSON.parse(raw) as Item[]) : []
   } catch {
     return []
   }
 }
 
-function write(name, items) {
+function write(name: string, items: Item[]): void {
   localStorage.setItem(keyFor(name), JSON.stringify(items))
   // notify same-tab subscribers (the 'storage' event only fires in OTHER tabs)
   window.dispatchEvent(new CustomEvent(EVENT, { detail: { name } }))
 }
 
-function genId(name) {
+function genId(name: string): string {
   return `${name}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 }
 
@@ -51,17 +49,17 @@ function genId(name) {
  * SEED_VERSION changes (i.e. a deploy shipped new content) so the public site
  * never gets stuck on stale seed data.
  */
-function ensureSeeded() {
+function ensureSeeded(): void {
   const fresh = localStorage.getItem(`${PREFIX}seedVersion`) !== SEED_VERSION
   COLLECTION_KEYS.forEach((name) => {
     if (fresh || localStorage.getItem(keyFor(name)) == null) {
-      const seed = mock[COLLECTIONS[name].seedKey] || []
+      const seed = mockRecord[COLLECTIONS[name].seedKey] || []
       localStorage.setItem(keyFor(name), JSON.stringify(seed))
     }
   })
   SINGLETON_KEYS.forEach((name) => {
     if (fresh || localStorage.getItem(singleKey(name)) == null) {
-      const seed = mock[SINGLETONS[name].seedKey] || {}
+      const seed = mockRecord[SINGLETONS[name].seedKey] || {}
       localStorage.setItem(singleKey(name), JSON.stringify(seed))
     }
   })
@@ -91,7 +89,7 @@ export const localProvider = {
 
   async create(name, data) {
     const items = read(name)
-    const item = { ...data, id: genId(name) }
+    const item: Item = { ...data, id: genId(name) }
     items.push(item)
     write(name, items)
     return item
@@ -104,7 +102,10 @@ export const localProvider = {
   },
 
   async remove(name, id) {
-    write(name, read(name).filter((i) => i.id !== id))
+    write(
+      name,
+      read(name).filter((i) => i.id !== id),
+    )
   },
 
   /** Move an item up/down by one position (dir = -1 | 1). */
@@ -120,15 +121,16 @@ export const localProvider = {
   /** Restore a collection (or all) to the original mockData defaults. */
   async reset(name) {
     const names = name ? [name] : COLLECTION_KEYS
-    names.forEach((n) => write(n, mock[COLLECTIONS[n].seedKey] || []))
+    names.forEach((n) => write(n, mockRecord[COLLECTIONS[n].seedKey] || []))
   },
 
   /** Subscribe to changes for a collection. Returns an unsubscribe fn. */
   subscribe(name, cb) {
-    const onLocal = (e) => {
-      if (!e.detail || e.detail.name === name) cb(read(name))
+    const onLocal = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail || detail.name === name) cb(read(name))
     }
-    const onStorage = (e) => {
+    const onStorage = (e: StorageEvent) => {
       if (e.key === keyFor(name)) cb(read(name))
     }
     window.addEventListener(EVENT, onLocal)
@@ -142,7 +144,8 @@ export const localProvider = {
   // ── Singletons (one-off documents, e.g. institution info) ──────────
   getSingletonSync(name) {
     try {
-      return JSON.parse(localStorage.getItem(singleKey(name))) || {}
+      const raw = localStorage.getItem(singleKey(name))
+      return raw ? (JSON.parse(raw) as Singleton) : {}
     } catch {
       return {}
     }
@@ -159,16 +162,17 @@ export const localProvider = {
   },
 
   async resetSingleton(name) {
-    const seed = mock[SINGLETONS[name].seedKey] || {}
+    const seed = (mockRecord[SINGLETONS[name].seedKey] || {}) as Singleton
     await this.setSingleton(name, seed)
     return seed
   },
 
   subscribeSingleton(name, cb) {
-    const onLocal = (e) => {
-      if (!e.detail || e.detail.name === `single:${name}`) cb(this.getSingletonSync(name))
+    const onLocal = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail || detail.name === `single:${name}`) cb(this.getSingletonSync(name))
     }
-    const onStorage = (e) => {
+    const onStorage = (e: StorageEvent) => {
       if (e.key === singleKey(name)) cb(this.getSingletonSync(name))
     }
     window.addEventListener(EVENT, onLocal)
@@ -178,4 +182,4 @@ export const localProvider = {
       window.removeEventListener('storage', onStorage)
     }
   },
-}
+} satisfies DataProvider

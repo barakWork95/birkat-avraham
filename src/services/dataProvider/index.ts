@@ -9,6 +9,7 @@
  */
 import { localProvider } from './localProvider'
 import { firebaseProvider } from './firebaseProvider'
+import type { DataProvider } from './types'
 
-export const provider =
+export const provider: DataProvider =
   import.meta.env.VITE_DATA_PROVIDER === 'firebase' ? firebaseProvider : localProvider

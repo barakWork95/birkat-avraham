@@ -10,15 +10,35 @@
  *  triggers the charge:
  *    1. Load the iframe:  NEDARIM_IFRAME_URL  (renders the card fields)
  *    2. To charge, post:  { Name: 'FinishTransaction2', Value: <payload> }
- *    3. Listen for:       { Name: 'TransactionResponse', Value: { Status, Message, ... } }
+ *    3. Listen for:       { Name: 'TransactionResponse', Value: { Status, ... } }
  *                         { Name: 'Height',            Value: <px> }  (auto-resize)
  *
  *  LIVE vs DEMO is decided by whether the ApiValid token is configured
  *  (VITE_NEDARIM_API_VALID). With a token → real charge through the iframe.
- *  Without one (e.g. the public GitHub Pages demo) → a mocked success so the
- *  thank-you UI still demonstrates cleanly and no real charge is attempted.
+ *  Without one → a mocked success so the thank-you UI still demonstrates and
+ *  no real charge is attempted.
  * ------------------------------------------------------------------
  */
+
+export type DonationType = 'one-time' | 'recurring'
+
+export interface DonationForm {
+  amount: number
+  donationType: DonationType
+  fullName: string
+  email?: string
+  phone?: string
+  dedicationNote?: string
+}
+
+export type NedarimPayload = Record<string, string>
+
+export interface DonationResult {
+  success: boolean
+  transactionId?: string
+  payload: NedarimPayload
+  raw: Record<string, unknown>
+}
 
 export const NEDARIM_MOSAD_ID = '7004283'
 export const NEDARIM_ORIGIN = 'https://www.matara.pro'
@@ -30,13 +50,10 @@ export const NEDARIM_IFRAME_URL = `${NEDARIM_ORIGIN}/NedarimPlus/iframe/`
 export const NEDARIM_API_VALID = import.meta.env.VITE_NEDARIM_API_VALID || ''
 
 /** True when a live ApiValid token is present, so real charges are enabled. */
-export const isNedarimConfigured = () => NEDARIM_API_VALID.trim().length > 0
+export const isNedarimConfigured = (): boolean => NEDARIM_API_VALID.trim().length > 0
 
-/**
- * Shape the form values into the payload Nedarim Plus expects.
- * @param {{ amount:number, donationType:'one-time'|'recurring', fullName:string, email:string, phone?:string, dedicationNote:string }} form
- */
-export function buildNedarimPayload(form) {
+/** Shape the form values into the payload Nedarim Plus expects. */
+export function buildNedarimPayload(form: DonationForm): NedarimPayload {
   const { amount, donationType, fullName, email, phone, dedicationNote } = form
   const parts = (fullName || '').trim().split(/\s+/)
   const firstName = parts.shift() || ''
@@ -48,7 +65,7 @@ export function buildNedarimPayload(form) {
   return {
     Mosad: NEDARIM_MOSAD_ID,
     ApiValid: NEDARIM_API_VALID,
-    PaymentType: recurring ? 'HK' : 'Ragil', // HK = הוראת קבע (standing order) · Ragil = one-time
+    PaymentType: recurring ? 'HK' : 'Ragil', // HK = הוראת קבע · Ragil = one-time
     Currency: '1', // 1 = ₪ (ILS)
     Zeout: '', // donor ID number (not collected)
     Amount: String(amount || 0),
@@ -60,7 +77,7 @@ export function buildNedarimPayload(form) {
     Phone: phone || '',
     Mail: email || '',
     Comment: dedicationNote || '',
-    Groupe: 'אתר', // source/campaign tag so donations from the site are identifiable
+    Groupe: 'אתר', // source/campaign tag so site donations are identifiable
     CallBack: '',
     CallBackMailError: '',
     Param1: '',
@@ -72,7 +89,7 @@ export function buildNedarimPayload(form) {
 }
 
 // Friendly Hebrew messages for the iframe's card-field validation errors.
-const FIELD_ERRORS = {
+const FIELD_ERRORS: Record<string, Record<string, string>> = {
   Card: { Empty: 'נא להזין מספר כרטיס אשראי', Wrong: 'מספר כרטיס האשראי אינו תקין' },
   Expiration: { Empty: 'נא להזין תוקף', Wrong: 'תוקף הכרטיס אינו תקין' },
   CVV: { Empty: 'נא להזין CVV', Wrong: 'ה-CVV אינו תקין' },
@@ -81,8 +98,8 @@ const FIELD_ERRORS = {
 /**
  * Charge through the live Nedarim Plus iframe.
  *
- * The card fields (number / expiry / CVV) live inside `iframeEl` — the donor
- * fills them there (PCI-safe). Flow, matching the iframe's postMessage API:
+ * The card fields live inside `iframeEl` (the donor fills them there, PCI-safe).
+ * Flow, matching the iframe's postMessage API:
  *   1. post { Name:'ValidateFields' }        → iframe checks its card inputs
  *      · { Name:'ValidateFields', Value:'OK' }              → proceed
  *      · { Name:'ValidateFields', Field, ErrorType }        → reject (bad field)
@@ -90,13 +107,12 @@ const FIELD_ERRORS = {
  *      · { Name:'TransactionResponse', Value: <result> }    → resolve
  *
  * Only messages from the Nedarim origin are trusted.
- *
- * @param {HTMLIFrameElement} iframeEl
- * @param {object} payload  from buildNedarimPayload()
- * @param {{ timeoutMs?: number }} [opts]
- * @returns {Promise<{ success:boolean, transactionId?:string, payload:object, raw:object }>}
  */
-export function chargeViaNedarim(iframeEl, payload, { timeoutMs = 90000 } = {}) {
+export function chargeViaNedarim(
+  iframeEl: HTMLIFrameElement | null | undefined,
+  payload: NedarimPayload,
+  { timeoutMs = 90000 }: { timeoutMs?: number } = {},
+): Promise<DonationResult> {
   return new Promise((resolve, reject) => {
     const frame = iframeEl?.contentWindow
     if (!frame) {
@@ -104,13 +120,13 @@ export function chargeViaNedarim(iframeEl, payload, { timeoutMs = 90000 } = {}) 
       return
     }
 
-    let timer
+    let timer: ReturnType<typeof setTimeout>
     const cleanup = () => {
       window.removeEventListener('message', onMessage)
       clearTimeout(timer)
     }
 
-    const onMessage = (e) => {
+    const onMessage = (e: MessageEvent) => {
       // Trust only messages from the Nedarim Plus origin.
       if (e.origin !== NEDARIM_ORIGIN) return
       const { Name, Value, Field, ErrorType } = e.data || {}
@@ -128,10 +144,15 @@ export function chargeViaNedarim(iframeEl, payload, { timeoutMs = 90000 } = {}) 
 
       if (Name === 'TransactionResponse') {
         cleanup()
-        const raw = Value || {}
+        const raw = (Value || {}) as Record<string, unknown>
         const status = String(raw.Status ?? '').toLowerCase()
         const success = status === 'success' || status === 'ok' || raw.Status === true
-        resolve({ success, transactionId: raw.TransactionId || raw.Id, raw, payload })
+        resolve({
+          success,
+          transactionId: (raw.TransactionId || raw.Id) as string | undefined,
+          raw,
+          payload,
+        })
       }
     }
 
@@ -149,11 +170,11 @@ export function chargeViaNedarim(iframeEl, payload, { timeoutMs = 90000 } = {}) 
 /**
  * Main entry used by the donation hook. Routes to the live charge when an
  * iframe + ApiValid are available, otherwise returns a mocked success (demo).
- *
- * @param {object} payload  from buildNedarimPayload()
- * @param {{ iframe?: HTMLIFrameElement }} [ctx]
  */
-export async function handleNedarimDonation(payload, { iframe } = {}) {
+export async function handleNedarimDonation(
+  payload: NedarimPayload,
+  { iframe }: { iframe?: HTMLIFrameElement | null } = {},
+): Promise<DonationResult> {
   if (isNedarimConfigured() && iframe) {
     console.info('[Nedarim Plus] LIVE charge → posting to iframe', { ...payload, ApiValid: '***' })
     return chargeViaNedarim(iframe, payload)

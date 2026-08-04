@@ -1,23 +1,23 @@
 /**
  * localAuth — a lightweight passcode gate for the DEMO admin.
  *
- * ⚠️ This is NOT real security — the passcode lives client-side. It only keeps
- * the admin UI out of casual view while we're in local mode. Real auth arrives
- * with Firebase Authentication (see firebaseAuth.js) + Firestore security rules,
- * where write access is enforced on the server.
- *
- * Passcode: VITE_ADMIN_PASSCODE (defaults to "brachot" for the demo).
+ * ⚠️ NOT real security — the passcode lives client-side. It only keeps the admin
+ * UI out of casual view in local mode. Real auth is firebaseAuth (Email/Password)
+ * + Firestore rules, where write access is enforced on the server.
  */
+import type { AuthProvider, AuthUser } from './types'
+
 const PASSCODE = import.meta.env.VITE_ADMIN_PASSCODE || 'brachot'
 const SESSION_KEY = 'ba:admin-session'
 
-const listeners = new Set()
-const notify = (user) => listeners.forEach((cb) => cb(user))
+type Listener = (user: AuthUser | null) => void
+const listeners = new Set<Listener>()
+const notify = (user: AuthUser | null) => listeners.forEach((cb) => cb(user))
 
 export const localAuth = {
   mode: 'local',
 
-  getUser() {
+  getUser(): AuthUser | null {
     return sessionStorage.getItem(SESSION_KEY) ? { name: 'מנהל', role: 'admin' } : null
   },
 
@@ -40,4 +40,4 @@ export const localAuth = {
     listeners.add(cb)
     return () => listeners.delete(cb)
   },
-}
+} satisfies AuthProvider

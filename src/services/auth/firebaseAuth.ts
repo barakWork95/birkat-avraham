@@ -1,20 +1,22 @@
 /**
  * firebaseAuth — live Firebase Authentication (Email/Password).
  *
- * Mirrors localAuth's interface so AdminApp/useAuth don't change. Write access
- * is enforced server-side by Firestore/Storage rules (an editor email allowlist),
- * not by this client gate. The Login screen shows email + password when
- * auth.mode === 'firebase'.
+ * Satisfies the AuthProvider contract so AdminApp/useAuth don't change. Write
+ * access is enforced server-side by Firestore/Storage rules (an editor email
+ * allowlist), not by this client gate. The Login screen shows email + password
+ * when auth.mode === 'firebase'.
  */
 import {
   signInWithEmailAndPassword,
   signOut as fbSignOut,
   onAuthStateChanged,
+  type User,
 } from 'firebase/auth'
 import { auth as fbAuth } from '../firebase'
+import type { AuthProvider, AuthUser } from './types'
 
-// Normalize a Firebase user into the shape the admin UI expects ({ name, ... }).
-const toUser = (u) =>
+// Normalize a Firebase user into the shape the admin UI expects.
+const toUser = (u: User | null): AuthUser | null =>
   u ? { name: u.displayName || u.email || 'מנהל', email: u.email, uid: u.uid, role: 'admin' } : null
 
 export const firebaseAuth = {
@@ -26,12 +28,16 @@ export const firebaseAuth = {
 
   async signIn(email, password) {
     try {
-      const cred = await signInWithEmailAndPassword(fbAuth, (email || '').trim(), password)
+      const cred = await signInWithEmailAndPassword(fbAuth, (email || '').trim(), password ?? '')
       return toUser(cred.user)
     } catch (err) {
       // Surface a friendly Hebrew message for the common failures.
-      const code = err?.code || ''
-      if (code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found')) {
+      const code = (err as { code?: string })?.code || ''
+      if (
+        code.includes('invalid-credential') ||
+        code.includes('wrong-password') ||
+        code.includes('user-not-found')
+      ) {
         throw new Error('אימייל או סיסמה שגויים')
       }
       if (code.includes('too-many-requests')) {
@@ -48,4 +54,4 @@ export const firebaseAuth = {
   onChange(cb) {
     return onAuthStateChanged(fbAuth, (u) => cb(toUser(u)))
   },
-}
+} satisfies AuthProvider
