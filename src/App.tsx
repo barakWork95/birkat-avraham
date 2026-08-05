@@ -35,7 +35,7 @@ function BootSplash() {
  * timeout so a slow/failed read can never leave the splash stuck.
  */
 export default function App() {
-  const donateRef = useRef(null)
+  const donateRef = useRef<HTMLElement>(null)
   const [ready, setReady] = useState(
     () => Object.keys(provider.getSingletonSync?.('info') || {}).length > 0,
   )
