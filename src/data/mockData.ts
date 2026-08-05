@@ -216,6 +216,19 @@ export const galleryData = [
   { id: 'g6', type: 'video', title: 'ברכת ראש המוסדות', category: 'שיעורים', gradient: 'linear-gradient(135deg,#4a2f1e,#D4AF37)', videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
   { id: 'g7', type: 'photo', title: 'סעודת מצווה קהילתית', category: 'אירועים', gradient: 'linear-gradient(135deg,#1A1110,#966d07)' },
   { id: 'g8', type: 'photo', title: 'פעילות הנוער', category: 'נוער', gradient: 'linear-gradient(135deg,#2B1B17,#D4AF37)' },
+  {
+    id: 'g9',
+    type: 'album',
+    title: 'אלבום הכנסת ספר תורה',
+    category: 'אירועים',
+    gradient: 'linear-gradient(135deg,#1A1110,#D4AF37)',
+    media: [
+      { id: 'g9m1', type: 'photo', caption: 'ריקודים לכבוד התורה' },
+      { id: 'g9m2', type: 'photo', caption: 'כתיבת האותיות האחרונות' },
+      { id: 'g9m3', type: 'video', videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', caption: 'סרטון המעמד' },
+      { id: 'g9m4', type: 'photo', caption: 'הכנסת הספר לארון הקודש' },
+    ],
+  },
 ] satisfies GalleryItem[]
 
 /**

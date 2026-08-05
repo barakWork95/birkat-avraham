@@ -88,6 +88,13 @@ export const PlayIcon = ({ className = 'h-6 w-6' }: IconProps) => (
   </svg>
 )
 
+export const StackIcon = ({ className = 'h-5 w-5' }: IconProps) => (
+  <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+    <rect x="7" y="3" width="14" height="14" rx="2" />
+    <path d="M3 7v12a2 2 0 002 2h12" strokeLinecap="round" />
+  </svg>
+)
+
 export const BookIcon = ({ className = 'h-6 w-6' }: IconProps) => (
   <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
     <path d="M12 6c-1.5-1.2-3.5-1.8-6-1.8V18c2.5 0 4.5.6 6 1.8 1.5-1.2 3.5-1.8 6-1.8V4.2c-2.5 0-4.5.6-6 1.8zM12 6v13.8" strokeLinejoin="round" />
