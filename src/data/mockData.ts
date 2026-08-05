@@ -1,22 +1,26 @@
 /**
  * ------------------------------------------------------------------
- *  MOCK DATA — Phase 1 (Demo)
+ *  MOCK DATA — local/demo seed
  * ------------------------------------------------------------------
- *  This is the single source of truth for all demo content.
- *  In Phase 2, each export below maps 1:1 to a backend endpoint,
- *  so the hooks in /src/hooks can swap `import { ... } from '../data/mockData'`
- *  for a `fetch()` / GraphQL call WITHOUT touching any UI component.
+ *  This is the seed content for local mode (localStorage provider) and the
+ *  one-time Firestore seed. Each export maps to a collection (or the info
+ *  singleton) via its `seedKey` in src/config/collections.ts. The live site
+ *  reads from the data provider, not from here directly.
  *
- *  Suggested Phase 2 mapping:
- *    scheduleData   -> GET /api/schedule
- *    leadershipData -> GET /api/staff
- *    galleryData    -> GET /api/media
- *    eventsData     -> GET /api/events
- *    donationTiers  -> GET /api/donation/tiers
- *    impactSlides   -> GET /api/donation/impact
- *    institutionInfo-> GET /api/info
+ *  Typed with `satisfies` so the literals keep their exact shapes while being
+ *  checked against the domain models in src/types/models.ts.
  * ------------------------------------------------------------------
  */
+import type {
+  Contact,
+  DonationTier,
+  EventItem,
+  GalleryItem,
+  ImpactSlide,
+  InstitutionInfo,
+  ScheduleItem,
+  Zmanim,
+} from '../types/models'
 
 export const institutionInfo = {
   nameHe: 'ברכת אברהם',
@@ -49,11 +53,11 @@ export const institutionInfo = {
   },
   // Nedarim Plus mosad id (used by the donation form / service)
   nedarimMosadId: '7004283',
-}
+} satisfies InstitutionInfo
 
 /**
  * Top bar — Zmanim & Hebrew date.
- * Phase 2: replace with a live Hebcal API call (see useZmanim.js).
+ * Static fallback; the live source is a Hebcal API call (see useZmanim.ts).
  */
 export const zmanimData = {
   hebrewDate: 'כ״ז בתמוז תשפ״ה',
@@ -63,11 +67,10 @@ export const zmanimData = {
   candleLighting: '19:12',
   havdalah: '20:23',
   dafYomi: 'עבודה זרה ל״ד',
-}
+} satisfies Zmanim
 
 /**
  * Daily schedule — grouped by category for the tabbed view.
- * Each item: { id, name, time, sub?, location? }
  */
 export const scheduleData = {
   tabs: [
@@ -96,11 +99,11 @@ export const scheduleData = {
       sub: 'ימי ראשון',
       location: 'בית המדרש',
     },
-  ],
+  ] satisfies ScheduleItem[],
   kollel: [
     { id: 'k1', name: 'כולל ערב', time: '20:15 – 22:00', sub: 'ימים א׳–ד׳', location: 'בית המדרש' },
     { id: 'k2', name: 'חברותות', time: '20:15', sub: 'ימים א׳, ב׳, ג׳', location: 'בית המדרש' },
-  ],
+  ] satisfies ScheduleItem[],
 }
 
 // Flat exports so the admin can manage each schedule tab as its own collection.
@@ -109,7 +112,7 @@ export const scheduleKollel = scheduleData.kollel
 
 /**
  * Leadership & staff grid.
- * `img: null` → the UI renders an elegant monogram avatar (no external assets needed for the demo).
+ * `img: null` → the UI renders an elegant monogram avatar (no external assets needed).
  */
 export const leadershipData = [
   {
@@ -141,11 +144,11 @@ export const leadershipData = [
     desc: 'גבאי בית הכנסת והמוסדות.',
     img: null,
   },
-]
+] satisfies Contact[]
 
 /**
- * Donation impact carousel — “see where your funds go”.
- * `image` is a CSS gradient placeholder for the demo; Phase 2 swaps in real photography.
+ * Donation impact carousel — "see where your funds go".
+ * `gradient` is a CSS placeholder; real photography can be uploaded via admin.
  */
 export const impactSlides = [
   {
@@ -180,7 +183,7 @@ export const impactSlides = [
     statLabel: 'בני נוער',
     gradient: 'linear-gradient(135deg, #2B1B17 0%, #6b4a1e 55%, #B8860B 100%)',
   },
-]
+] satisfies ImpactSlide[]
 
 /**
  * Donation preset tiers for the widget.
@@ -190,12 +193,12 @@ export const donationTiers = [
   { id: 't2', amount: 180, label: 'חי פעמים', note: 'סל מזון למשפחה', popular: true },
   { id: 't3', amount: 360, label: 'שותפות', note: 'יום לימוד לאברך' },
   { id: 't4', amount: 1000, label: 'נדיב', note: 'תמיכה חודשית' },
-]
+] satisfies DonationTier[]
 
 /**
  * Media gallery items.
- * type: 'photo' | 'video'  — video items show a play badge and open an embedded frame in the lightbox.
- * `gradient` stands in for a thumbnail image in the demo.
+ * type: 'photo' | 'video' — video items show a play badge and open an embedded frame in the lightbox.
+ * `gradient` stands in for a thumbnail image until a photo is uploaded.
  */
 export const galleryData = [
   { id: 'g1', type: 'photo', title: 'שיעורו של ראש המוסדות', category: 'שיעורים', gradient: 'linear-gradient(135deg,#1A1110,#B8860B)' },
@@ -206,13 +209,13 @@ export const galleryData = [
   { id: 'g6', type: 'video', title: 'ברכת ראש המוסדות', category: 'שיעורים', gradient: 'linear-gradient(135deg,#4a2f1e,#D4AF37)', videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
   { id: 'g7', type: 'photo', title: 'סעודת מצווה קהילתית', category: 'אירועים', gradient: 'linear-gradient(135deg,#1A1110,#966d07)' },
   { id: 'g8', type: 'photo', title: 'פעילות הנוער', category: 'נוער', gradient: 'linear-gradient(135deg,#2B1B17,#D4AF37)' },
-]
+] satisfies GalleryItem[]
 
 /**
- * Upcoming events (used by useEvents / future events section & CTAs).
+ * Upcoming events (used by useEvents / events section & CTAs).
  */
 export const eventsData = [
   { id: 'e1', title: 'הילולת הצדיק', date: '2026-07-31', hebrewDate: 'ט״ז באב', desc: 'ערב לימוד ותפילה לזכר הצדיק, בהשתתפות הרב.' },
   { id: 'e2', title: 'סיום מסכת', date: '2026-08-14', hebrewDate: 'ר״ח אלול', desc: 'מעמד סיום חגיגי לאברכי הכולל.' },
   { id: 'e3', title: 'חלוקת סלי מזון', date: '2026-09-04', hebrewDate: 'כ״ב אלול', desc: 'חלוקת סלי מזון למשפחות לקראת החגים.' },
-]
+] satisfies EventItem[]
