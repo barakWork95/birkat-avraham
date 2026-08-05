@@ -9,11 +9,12 @@ import { NEDARIM_IFRAME_URL, NEDARIM_ORIGIN } from '../services/nedarimPlus'
  * Auto-resizes to the height Nedarim reports so the card fields are never
  * clipped. Rendered only when a live ApiValid token is configured.
  */
-const NedarimIframe = forwardRef(function NedarimIframe(_props, ref) {
-  const elOf = () => (typeof ref === 'function' ? null : ref?.current)
+const NedarimIframe = forwardRef<HTMLIFrameElement>(function NedarimIframe(_props, ref) {
+  const elOf = (): HTMLIFrameElement | null =>
+    typeof ref === 'function' || !ref ? null : ref.current
 
   useEffect(() => {
-    const onMessage = (e) => {
+    const onMessage = (e: MessageEvent) => {
       if (e.origin !== NEDARIM_ORIGIN) return
       const el = elOf()
       if (el && e.data?.Name === 'Height' && e.data.Value) {

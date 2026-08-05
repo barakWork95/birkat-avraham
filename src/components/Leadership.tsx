@@ -1,6 +1,7 @@
 import SectionTitle from './ui/SectionTitle'
 import Avatar from './ui/Avatar'
 import { useCollection } from '../hooks/useCollection'
+import type { Contact } from '../types/models'
 
 /**
  * Leadership — staff grid. The featured leader (ראש המוסדות) spans a
@@ -10,7 +11,7 @@ import { useCollection } from '../hooks/useCollection'
  * panel reflect here immediately — the proven end-to-end slice.
  */
 export default function Leadership() {
-  const leadershipData = useCollection('leadership')
+  const leadershipData = useCollection<Contact>('leadership')
   const featured = leadershipData.find((p) => p.featured)
   const rest = leadershipData.filter((p) => !p.featured)
 

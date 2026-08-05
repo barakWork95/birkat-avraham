@@ -3,14 +3,15 @@ import SectionTitle from './ui/SectionTitle'
 import ImpactCarousel from './ImpactCarousel'
 import DonationWidget from './DonationWidget'
 import { useInfo } from '../hooks/useInfo'
+import type { BankTransfer } from '../types/models'
 
 /**
  * DonationSection — pairs the impact carousel ("see where funds go")
  * with the donation widget, plus bank-transfer details for those who prefer it.
  * `ref` lets CTAs elsewhere scroll here.
  */
-const DonationSection = forwardRef(function DonationSection(_props, ref) {
-  const bank = useInfo().bankTransfer || {}
+const DonationSection = forwardRef<HTMLElement>(function DonationSection(_props, ref) {
+  const bank: BankTransfer = useInfo().bankTransfer || {}
 
   return (
     <section id="donate" ref={ref} className="scroll-mt-28 bg-white/60 py-16 sm:py-24">

@@ -3,7 +3,14 @@
  * gold monogram derived from the first Hebrew letter of the name.
  * Keeps the demo free of external image assets.
  */
-export default function Avatar({ name, src, size = 'h-24 w-24', featured = false }) {
+interface AvatarProps {
+  name?: string
+  src?: string | null
+  size?: string
+  featured?: boolean
+}
+
+export default function Avatar({ name, src, size = 'h-24 w-24', featured = false }: AvatarProps) {
   const initial = (name || '').replace(/["'׳״]/g, '').trim().charAt(0) || 'ב'
 
   if (src) {

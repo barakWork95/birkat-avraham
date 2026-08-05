@@ -7,7 +7,7 @@ import { useZmanim } from '../hooks/useZmanim'
 export default function TopBar() {
   const { zmanim } = useZmanim()
 
-  const Item = ({ label, value, accent }) => (
+  const Item = ({ label, value, accent }: { label: string; value: string; accent?: boolean }) => (
     <div className="flex items-center gap-1.5 whitespace-nowrap">
       <span className="text-gold-soft/70">{label}</span>
       <span className={accent ? 'font-semibold text-gold-light' : 'font-medium text-white'}>

@@ -2,7 +2,14 @@
  * SectionTitle — consistent centered section heading with an eyebrow
  * label and the decorative gold rule.
  */
-export default function SectionTitle({ eyebrow, title, subtitle, align = 'center' }) {
+interface SectionTitleProps {
+  eyebrow?: string
+  title?: string
+  subtitle?: string
+  align?: 'center' | 'right'
+}
+
+export default function SectionTitle({ eyebrow, title, subtitle, align = 'center' }: SectionTitleProps) {
   const alignment = align === 'center' ? 'text-center items-center' : 'text-right items-start'
   return (
     <div className={`mb-12 flex flex-col ${alignment}`}>
