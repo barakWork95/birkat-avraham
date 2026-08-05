@@ -48,7 +48,7 @@ refactor and for testing admin edits safely.
    ```bash
    npm run deploy:staging     # builds staging + deploys hosting, Firestore & Storage rules
    ENV_FILE=.env.staging SEED_EMAIL="kolelbirkatavraham@gmail.com" SEED_PASSWORD="…" \
-     node scripts/seedFirestore.mjs
+     npm run seed
    ```
 4. Add `birkat-avraham-staging.web.app` to Authentication → Settings → Authorized domains.
 
@@ -59,11 +59,42 @@ npm run deploy:staging
 
 ---
 
+## Seeding content (`npm run seed`)
+
+`scripts/seedFirestore.mjs` imports `src/data/mockData.ts` into Firestore (run
+via `tsx`). Credentials come from env: `SEED_EMAIL` / `SEED_PASSWORD`, and
+`ENV_FILE` picks the target project (`.env` = production, `.env.staging` = staging).
+
+⚠️ **Production already holds real, admin-edited content.** A bare seed
+**overwrites every collection + the info singleton** from mockData — that's for
+initially seeding an *empty* project (like staging was), and would clobber
+production. Two guards make it safe:
+
+- `SEED_ONLY=a,b` — seed only these collections (include `info` to also write the singleton).
+- `SEED_SKIP_EXISTING=1` — skip any collection that already has documents.
+
+**Add the new prayers (`scheduleTefilot`) to production — safe, non-destructive:**
+
+```bash
+SEED_ONLY=scheduleTefilot SEED_SKIP_EXISTING=1 \
+  SEED_EMAIL="kolelbirkatavraham@gmail.com" SEED_PASSWORD="…" \
+  npm run seed
+```
+
+This writes only the three prayers to an empty `scheduleTefilot` and touches
+nothing else. (Alternatively, just add them by hand in `/admin` →
+`תפילות (לו"ז)` → הוספה — no script needed.) Verify on staging first if unsure.
+
+---
+
 ## Script reference
 
 | Script | What it does |
 |---|---|
 | `npm run dev` | local dev server |
+| `npm test` | Vitest — critical-path unit tests |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run seed` | seed Firestore from mockData (see guards above) |
 | `npm run deploy` | build + deploy hosting to **production** |
 | `npm run deploy:all` | build + deploy hosting **and rules** to production |
 | `npm run deploy:rules` | deploy only Firestore/Storage rules to production |

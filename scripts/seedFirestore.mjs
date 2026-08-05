@@ -1,27 +1,38 @@
 /**
- * seedFirestore — one-time import of the mockData content into Firestore.
+ * seedFirestore — import mockData content into Firestore.
  *
  * Signs in as an editor (so the writes satisfy firestore.rules), then writes
- * every content collection (with an `order` field) and the info singleton,
- * using each item's existing id as the Firestore doc id (so re-running is
- * idempotent — it overwrites, never duplicates).
+ * the selected content collections (with an `order` field) and, if selected,
+ * the info singleton — using each item's existing id as the doc id, so
+ * re-running overwrites rather than duplicates.
  *
- * Run (credentials via env so they're never committed):
- *   SEED_EMAIL="kolelbirkatavraham@gmail.com" SEED_PASSWORD="•••" \
- *     node scripts/seedFirestore.mjs
+ * Run with tsx (the seed reads the .ts data/config directly):
+ *   npm run seed        # = tsx scripts/seedFirestore.mjs
  *
- * Target a different environment with ENV_FILE (defaults to .env), e.g. staging:
- *   ENV_FILE=.env.staging SEED_EMAIL="…" SEED_PASSWORD="…" \
- *     node scripts/seedFirestore.mjs
+ * Credentials + target come from env (never committed):
+ *   SEED_EMAIL="kolelbirkatavraham@gmail.com" SEED_PASSWORD="•••" npm run seed
+ *   ENV_FILE=.env.staging SEED_EMAIL="…" SEED_PASSWORD="…" npm run seed   # staging
+ *
+ * ── SAFETY (production already has real, admin-edited content) ─────────────
+ * By default this OVERWRITES every collection + the info singleton from
+ * mockData — fine for INITIAL seeding of an EMPTY project (e.g. staging), but
+ * it would clobber real content on production. Two guards make it safe:
+ *   SEED_ONLY=scheduleTefilot        # only these collections (comma-separated;
+ *                                    # include 'info' to also write the singleton)
+ *   SEED_SKIP_EXISTING=1             # skip any collection that already has docs
+ *
+ * Safe "add the new prayers to production" command:
+ *   SEED_ONLY=scheduleTefilot SEED_SKIP_EXISTING=1 \
+ *     SEED_EMAIL="…" SEED_PASSWORD="…" npm run seed
  *
  * Prerequisite: publish that project's firestore.rules first (writes denied otherwise).
  */
 import { readFileSync } from 'node:fs'
 import { initializeApp } from 'firebase/app'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
-import { initializeFirestore, doc, setDoc } from 'firebase/firestore'
-import * as mock from '../src/data/mockData.js'
-import { COLLECTIONS, SINGLETONS } from '../src/config/collections.js'
+import { initializeFirestore, doc, setDoc, getDocs, collection as fsCollection } from 'firebase/firestore'
+import * as mock from '../src/data/mockData.ts'
+import { COLLECTIONS, SINGLETONS } from '../src/config/collections.ts'
 
 // Load VITE_FB_* values from the target env file (public identifiers).
 // Staging note: .env.staging only overrides Firebase keys, so we layer it on
@@ -62,6 +73,20 @@ if (!email || !password) {
   process.exit(1)
 }
 
+// Guards
+const only = (process.env.SEED_ONLY || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean)
+const wanted = (name) => only.length === 0 || only.includes(name)
+const skipExisting = process.env.SEED_SKIP_EXISTING === '1'
+
+if (only.length) console.log(`SEED_ONLY: ${only.join(', ')}`)
+if (skipExisting) console.log('SEED_SKIP_EXISTING: on (populated collections are skipped)')
+if (!only.length && !skipExisting) {
+  console.log('⚠️  Full overwrite of ALL collections + info from mockData (use SEED_ONLY / SEED_SKIP_EXISTING to scope).')
+}
+
 const app = initializeApp(firebaseConfig)
 // Long-polling avoids Node/WebChannel connectivity issues.
 const db = initializeFirestore(app, { experimentalForceLongPolling: true })
@@ -72,6 +97,14 @@ async function main() {
   console.log(`Signed in as ${email}`)
 
   for (const [name, cfg] of Object.entries(COLLECTIONS)) {
+    if (!wanted(name)) continue
+    if (skipExisting) {
+      const snap = await getDocs(fsCollection(db, name))
+      if (!snap.empty) {
+        console.log(`  ⊘ ${name}: already has ${snap.size} docs — skipped`)
+        continue
+      }
+    }
     const items = mock[cfg.seedKey] || []
     let order = 0
     for (const item of items) {
@@ -84,6 +117,7 @@ async function main() {
   }
 
   for (const [name, cfg] of Object.entries(SINGLETONS)) {
+    if (!wanted(name)) continue
     const data = mock[cfg.seedKey] || {}
     await setDoc(doc(db, 'singletons', name), data)
     console.log(`  ✓ singleton ${name}`)
