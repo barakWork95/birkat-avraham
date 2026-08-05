@@ -15,8 +15,8 @@ export default function Schedule() {
       <div className="section">
         <SectionTitle
           eyebrow='לו"ז שבועי'
-          title="שיעורים וכולל ערב"
-          subtitle="שיעורי הרב איתן אברהם שליט״א וסדרי הכולל בבית המדרש."
+          title="תפילות, שיעורים וכולל ערב"
+          subtitle="זמני התפילות, שיעורי הרב איתן אברהם שליט״א וסדרי הכולל בבית המדרש."
         />
 
         {/* Tabs */}
@@ -50,7 +50,7 @@ export default function Schedule() {
         {/* Empty state (loaded, no items in this tab) */}
         {!loading && items.length === 0 && (
           <div className="mx-auto max-w-md rounded-2xl border border-dashed border-gold/30 bg-white/50 px-6 py-10 text-center text-ink-muted">
-            אין שיעורים משובצים כרגע.
+            אין פריטים משובצים כרגע.
           </div>
         )}
 

@@ -129,6 +129,20 @@ export const COLLECTIONS: Record<string, CollectionConfig> = {
     },
   },
 
+  scheduleTefilot: {
+    label: 'תפילות (לו"ז)',
+    seedKey: 'scheduleTefilot',
+    itemTitle: (i) => i.name,
+    itemSubtitle: (i) => [i.time, i.sub].filter(Boolean).join(' · '),
+    fields: [
+      { key: 'name', label: 'שם התפילה', type: 'text', required: true },
+      { key: 'time', label: 'שעה', type: 'text' },
+      { key: 'sub', label: 'הערה (ימים / מניין)', type: 'text' },
+      { key: 'location', label: 'מיקום', type: 'text' },
+    ],
+    defaults: { name: '', time: '', sub: '', location: 'בית המדרש' },
+  },
+
   scheduleShiurim: {
     label: 'שיעורים (לו"ז)',
     seedKey: 'scheduleShiurim',

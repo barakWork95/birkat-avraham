@@ -74,9 +74,15 @@ export const zmanimData = {
  */
 export const scheduleData = {
   tabs: [
+    { key: 'tefilot', label: 'תפילות' },
     { key: 'shiurim', label: 'שיעורים' },
     { key: 'kollel', label: 'כולל ערב' },
   ],
+  tefilot: [
+    { id: 'p1', name: 'שחרית', time: '06:00 · 08:00', location: 'בית המדרש' },
+    { id: 'p2', name: 'מנחה', time: '13:30 · 18:45', location: 'בית המדרש' },
+    { id: 'p3', name: 'ערבית', time: '19:00', location: 'בית המדרש' },
+  ] satisfies ScheduleItem[],
   shiurim: [
     {
       id: 's1',
@@ -107,6 +113,7 @@ export const scheduleData = {
 }
 
 // Flat exports so the admin can manage each schedule tab as its own collection.
+export const scheduleTefilot = scheduleData.tefilot
 export const scheduleShiurim = scheduleData.shiurim
 export const scheduleKollel = scheduleData.kollel
 
