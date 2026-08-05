@@ -78,6 +78,17 @@ export interface ScheduleItem extends Entity {
   location?: string
 }
 
+export interface Bulletin extends Entity {
+  /** Parasha or issue name, e.g. "פרשת ראה". */
+  title: string
+  /** Publication date (used to surface the newest issue first). */
+  date?: string
+  /** The bulletin PDF (Storage URL, or a data URL in local mode). */
+  pdf?: string
+  /** Optional front-page cover image. */
+  cover?: string
+}
+
 export interface InfoContact {
   id: string
   label: string

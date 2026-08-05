@@ -18,6 +18,7 @@ export type FieldType =
   | 'select'
   | 'image'
   | 'media'
+  | 'file'
 
 export interface FieldSchema {
   key: string
@@ -196,6 +197,20 @@ export const COLLECTIONS: Record<string, CollectionConfig> = {
       { key: 'location', label: 'מיקום', type: 'text' },
     ],
     defaults: { name: '', time: '', sub: '', location: 'בית המדרש' },
+  },
+
+  bulletins: {
+    label: 'העלון השבועי',
+    seedKey: 'bulletinsData',
+    itemTitle: (i) => i.title,
+    itemSubtitle: (i) => i.date,
+    fields: [
+      { key: 'title', label: 'כותרת / פרשה', type: 'text', required: true },
+      { key: 'date', label: 'תאריך פרסום (YYYY-MM-DD)', type: 'text' },
+      { key: 'pdf', label: 'קובץ PDF', type: 'file' },
+      { key: 'cover', label: 'תמונת שער (רשות)', type: 'image' },
+    ],
+    defaults: { title: '', date: '', pdf: '', cover: '' },
   },
 }
 

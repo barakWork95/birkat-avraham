@@ -12,6 +12,7 @@
  * ------------------------------------------------------------------
  */
 import type {
+  Bulletin,
   Contact,
   DonationTier,
   EventItem,
@@ -239,3 +240,11 @@ export const eventsData = [
   { id: 'e2', title: 'סיום מסכת', date: '2026-08-14', hebrewDate: 'ר״ח אלול', desc: 'מעמד סיום חגיגי לאברכי הכולל.' },
   { id: 'e3', title: 'חלוקת סלי מזון', date: '2026-09-04', hebrewDate: 'כ״ב אלול', desc: 'חלוקת סלי מזון למשפחות לקראת החגים.' },
 ] satisfies EventItem[]
+
+/**
+ * Weekly bulletin (העלון השבועי). The current issue is the newest by date; the
+ * PDF is uploaded via admin. Left empty in the demo seed until a real file is added.
+ */
+export const bulletinsData = [
+  { id: 'b1', title: 'פרשת ראה', date: '2026-08-14', pdf: '', cover: '' },
+] satisfies Bulletin[]

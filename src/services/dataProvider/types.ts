@@ -32,5 +32,7 @@ export interface DataProvider {
 
   // Image storage
   uploadImage(file: File, pathPrefix?: string): Promise<string>
+  /** Upload an arbitrary file (e.g. a PDF) as-is — no image compression. */
+  uploadFile(file: File, pathPrefix?: string): Promise<string>
   deleteImage(url: string): Promise<void>
 }

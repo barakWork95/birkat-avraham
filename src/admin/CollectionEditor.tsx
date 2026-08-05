@@ -68,6 +68,28 @@ export default function CollectionEditor() {
     if (previous) provider.deleteImage?.(previous)
   }
 
+  const onPickFile = async (key: string, file?: File) => {
+    if (!file) return
+    const MAX_MB = 25
+    if (file.size > MAX_MB * 1024 * 1024) {
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1)
+      setErrors((e) => ({ ...e, [key]: `הקובץ גדול מדי (${sizeMb}MB) — מקסימום ${MAX_MB}MB` }))
+      return
+    }
+    setErrors((e) => ({ ...e, [key]: undefined }))
+    setUploading(key)
+    const previous = form[key]
+    try {
+      const url = await provider.uploadFile(file, name)
+      set(key, url)
+      if (previous) provider.deleteImage?.(previous)
+    } catch (err) {
+      setErrors((e) => ({ ...e, [key]: (err as Error).message || 'העלאת הקובץ נכשלה' }))
+    } finally {
+      setUploading(null)
+    }
+  }
+
   // ── Media repeater (album `media[]`) — functional updates avoid stale closures.
   const getMedia = (key: string): MediaEntry[] => (Array.isArray(form[key]) ? form[key] : [])
   const mutateMedia = (key: string, fn: (arr: MediaEntry[]) => MediaEntry[]) =>
@@ -226,6 +248,37 @@ export default function CollectionEditor() {
                       </button>
                     )}
                   </div>
+                </div>
+              )}
+              {f.type === 'file' && (
+                <div className="flex flex-wrap items-center gap-3">
+                  {form[f.key] ? (
+                    <a
+                      href={form[f.key]}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-lg bg-gold/10 px-3 py-2 text-sm font-medium text-gold-hover hover:bg-gold/20"
+                    >
+                      📄 צפייה בקובץ הנוכחי
+                    </a>
+                  ) : (
+                    <span className="text-sm text-ink-muted">אין קובץ</span>
+                  )}
+                  <label className={`btn-outline cursor-pointer text-sm ${uploading === f.key ? 'pointer-events-none opacity-60' : ''}`}>
+                    {uploading === f.key ? 'מעלה…' : form[f.key] ? 'החלפת קובץ' : 'העלאת קובץ PDF'}
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      className="hidden"
+                      disabled={uploading === f.key}
+                      onChange={(e) => onPickFile(f.key, e.target.files?.[0])}
+                    />
+                  </label>
+                  {form[f.key] && uploading !== f.key && (
+                    <button type="button" onClick={() => onRemoveImage(f.key)} className="text-sm text-red-600 hover:underline">
+                      הסרה
+                    </button>
+                  )}
                 </div>
               )}
               {f.type === 'media' && (

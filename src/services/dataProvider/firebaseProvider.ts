@@ -62,6 +62,15 @@ export const firebaseProvider = {
     return getDownloadURL(objectRef)
   },
 
+  /** Upload a file (PDF, etc.) as-is to Storage; return its public download URL. */
+  async uploadFile(file, pathPrefix = 'files') {
+    const ext = (file.name.split('.').pop() || 'bin').toLowerCase()
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+    const objectRef = ref(storage, `${pathPrefix}/${filename}`)
+    await uploadBytes(objectRef, file, { contentType: file.type || 'application/octet-stream' })
+    return getDownloadURL(objectRef)
+  },
+
   /** Best-effort delete of a previously uploaded Storage image (ignores non-Storage URLs). */
   async deleteImage(url) {
     if (!url || !/firebasestorage\.googleapis\.com|\.firebasestorage\.app/.test(url)) return

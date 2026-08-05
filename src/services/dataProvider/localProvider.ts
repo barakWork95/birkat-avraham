@@ -20,7 +20,7 @@ const PREFIX = 'ba:'
 const EVENT = 'ba:data-change'
 // Bump this whenever the mockData seed changes so returning visitors get fresh
 // content after a deploy (re-seeds from mockData; discards local demo edits).
-const SEED_VERSION = '2026-08-05b'
+const SEED_VERSION = '2026-08-05c'
 
 const keyFor = (name: string) => `${PREFIX}${name}`
 const singleKey = (name: string) => `${PREFIX}single:${name}`
@@ -82,6 +82,16 @@ export const localProvider = {
   /** Local mode has no object store — inline the compressed image as a data URL. */
   async uploadImage(file) {
     return compressImage(file)
+  },
+
+  /** Local mode: inline the file as a data URL (demo only — large files bloat localStorage). */
+  async uploadFile(file) {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onerror = () => reject(new Error('קריאת הקובץ נכשלה'))
+      reader.onload = () => resolve(String(reader.result))
+      reader.readAsDataURL(file)
+    })
   },
 
   /** No-op: local data-URL images have nothing external to delete. */
