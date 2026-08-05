@@ -88,16 +88,22 @@ export default function DonationWidget({ onDonate }: DonationWidgetProps = {}) {
       {/* Tiers */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {d.tiers.map((t) => {
-          const active = !d.custom && d.amount === t.amount
+          // Two independent states: `recommended` (מומלץ — any number of tiers,
+          // badge + gold border/tint) and `selected` (the one amount being
+          // donated — an extra ring so the donor sees their pick).
+          const recommended = !!t.popular
+          const selected = !d.custom && d.amount === t.amount
           return (
             <button
               key={t.id}
               onClick={() => d.selectTier(t.amount)}
               className={`relative flex flex-col items-center rounded-xl border-2 px-2 py-3 transition-all ${
-                active ? 'border-gold bg-gold/5 shadow-gold' : 'border-ink/10 hover:border-gold/40'
+                recommended || selected ? 'border-gold' : 'border-ink/10 hover:border-gold/40'
+              } ${recommended ? 'bg-gold/5' : ''} ${
+                selected ? 'shadow-gold ring-2 ring-gold ring-offset-2' : ''
               }`}
             >
-              {t.popular && (
+              {recommended && (
                 <span className="absolute -top-2 rounded-full bg-gold px-2 py-0.5 text-[10px] font-bold text-white">
                   מומלץ
                 </span>
