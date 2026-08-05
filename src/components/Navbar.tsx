@@ -11,11 +11,15 @@ const NAV_LINKS = [
   { href: '#location', label: 'צור קשר' },
 ]
 
+interface NavbarProps {
+  onDonate: () => void
+}
+
 /**
  * Navbar — sticky header with brand mark, desktop nav, donation CTA,
  * and a full-screen mobile drawer.
  */
-export default function Navbar({ onDonate }) {
+export default function Navbar({ onDonate }: NavbarProps) {
   const institutionInfo = useInfo()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)

@@ -3,6 +3,7 @@ import { useDonation } from '../hooks/useDonation'
 import { HeartIcon } from './ui/Icons'
 import NedarimIframe from './NedarimIframe'
 import { isNedarimConfigured } from '../services/nedarimPlus'
+import type { DonationResult, NedarimPayload } from '../services/nedarimPlus'
 
 /**
  * DonationWidget — preset tiers, custom amount, one-time/recurring toggle,
@@ -12,11 +13,23 @@ import { isNedarimConfigured } from '../services/nedarimPlus'
  * All state/validation lives in useDonation(); on submit it builds a
  * Nedarim Plus payload (Mosad 7004283) and calls the donation callback.
  *
- * @param {{ onDonate?: (payload:object) => Promise<{success:boolean}> }} props
- *   Optional Nedarim Plus handler override (Phase 2). Defaults to the service.
+ * `onDonate` optionally overrides the Nedarim Plus handler (tests/alternate
+ * gateways). Defaults to the service.
  */
-export default function DonationWidget({ onDonate } = {}) {
-  const frameRef = useRef(null)
+interface DonationWidgetProps {
+  onDonate?: (
+    payload: NedarimPayload,
+    ctx: { iframe?: HTMLIFrameElement | null },
+  ) => Promise<DonationResult>
+}
+
+const DONATION_TYPES = [
+  { key: 'one-time', label: 'חד-פעמי' },
+  { key: 'recurring', label: 'הוראת קבע' },
+] as const
+
+export default function DonationWidget({ onDonate }: DonationWidgetProps = {}) {
+  const frameRef = useRef<HTMLIFrameElement>(null)
   const live = isNedarimConfigured()
   const d = useDonation({ ...(onDonate ? { onDonate } : {}), iframeRef: frameRef })
 
@@ -57,10 +70,7 @@ export default function DonationWidget({ onDonate } = {}) {
 
       {/* Donation type toggle */}
       <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl bg-cream p-1">
-        {[
-          { key: 'one-time', label: 'חד-פעמי' },
-          { key: 'recurring', label: 'הוראת קבע' },
-        ].map((t) => (
+        {DONATION_TYPES.map((t) => (
           <button
             key={t.key}
             onClick={() => d.setDonationType(t.key)}
@@ -152,7 +162,8 @@ export default function DonationWidget({ onDonate } = {}) {
 
       {d.status === 'error' && (
         <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-          {d.lastResult?.raw?.Message || 'אירעה תקלה בעיבוד התרומה. נא לנסות שוב.'}
+          {(d.lastResult?.raw?.Message as string | undefined) ||
+            'אירעה תקלה בעיבוד התרומה. נא לנסות שוב.'}
         </p>
       )}
 

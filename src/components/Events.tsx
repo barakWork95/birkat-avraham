@@ -7,8 +7,8 @@ import { CalendarIcon } from './ui/Icons'
  * (useEvents), so the gabbaim can add/edit events from the admin panel and
  * they appear here automatically, with past events dropping off by date.
  */
-function formatGregorian(date) {
-  const d = new Date(date)
+function formatGregorian(date: string | undefined): string | null {
+  const d = new Date(date ?? '')
   if (isNaN(d.getTime())) return null
   try {
     return new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'long', year: 'numeric' }).format(d)

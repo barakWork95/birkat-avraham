@@ -1,10 +1,14 @@
 import { PhoneIcon, WhatsAppIcon, PinIcon, HeartIcon, MailIcon } from './ui/Icons'
 import { useInfo } from '../hooks/useInfo'
 
+interface FooterProps {
+  onDonate: () => void
+}
+
 /**
  * Footer — brand summary, quick links, contact, and legal line.
  */
-export default function Footer({ onDonate }) {
+export default function Footer({ onDonate }: FooterProps) {
   const info = useInfo()
   const year = new Date().getFullYear()
 

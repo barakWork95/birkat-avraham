@@ -7,11 +7,15 @@ const PILLARS = [
   { icon: HandsIcon, title: 'פעילות וחסד', desc: 'אירועים, נוער וחלוקת מזון' },
 ]
 
+interface HeroProps {
+  onDonate: () => void
+}
+
 /**
  * Hero — dignified header with mission statement and primary CTAs,
  * followed by the three institutional pillars.
  */
-export default function Hero({ onDonate }) {
+export default function Hero({ onDonate }: HeroProps) {
   const institutionInfo = useInfo()
   return (
     <section id="hero" className="relative overflow-hidden">

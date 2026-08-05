@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type TouchEvent } from 'react'
 import { ChevronLeft, ChevronRight } from './ui/Icons'
 import { useCollection } from '../hooks/useCollection'
+import type { ImpactSlide } from '../types/models'
 
 /**
  * ImpactCarousel — auto-advancing, swipeable carousel showing where
@@ -8,13 +9,13 @@ import { useCollection } from '../hooks/useCollection'
  * Reads from the data provider so admin edits reflect live.
  */
 export default function ImpactCarousel() {
-  const impactSlides = useCollection('impact')
+  const impactSlides = useCollection<ImpactSlide>('impact')
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
-  const touchX = useRef(null)
+  const touchX = useRef<number | null>(null)
   const count = impactSlides.length
 
-  const go = useCallback((next) => setIndex((i) => (next + count) % count), [count])
+  const go = useCallback((next: number) => setIndex((next + count) % count), [count])
 
   // keep index valid if slides are added/removed in admin
   useEffect(() => {
@@ -27,8 +28,8 @@ export default function ImpactCarousel() {
     return () => clearInterval(t)
   }, [index, paused, go, count])
 
-  const onTouchStart = (e) => (touchX.current = e.touches[0].clientX)
-  const onTouchEnd = (e) => {
+  const onTouchStart = (e: TouchEvent) => (touchX.current = e.touches[0].clientX)
+  const onTouchEnd = (e: TouchEvent) => {
     if (touchX.current == null) return
     const dx = e.changedTouches[0].clientX - touchX.current
     // RTL: swipe left → next, swipe right → prev

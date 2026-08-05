@@ -1,3 +1,4 @@
+import type { ComponentType, ReactNode } from 'react'
 import SectionTitle from './ui/SectionTitle'
 import { PinIcon, PhoneIcon, WhatsAppIcon, MailIcon } from './ui/Icons'
 import { useInfo } from '../hooks/useInfo'
@@ -13,7 +14,13 @@ export default function Location() {
   const wazeUrl = `https://waze.com/ul?q=${q}`
   const mapEmbed = `https://www.google.com/maps?q=${q}&output=embed`
 
-  const Row = ({ icon: Icon, children }) => (
+  const Row = ({
+    icon: Icon,
+    children,
+  }: {
+    icon: ComponentType<{ className?: string }>
+    children: ReactNode
+  }) => (
     <div className="flex items-start gap-3">
       <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gold/10 text-gold">
         <Icon className="h-5 w-5" />

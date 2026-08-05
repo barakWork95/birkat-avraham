@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import SectionTitle from './ui/SectionTitle'
 import { PlayIcon, CloseIcon, ChevronLeft, ChevronRight } from './ui/Icons'
 import { useCollection } from '../hooks/useCollection'
+import type { GalleryItem } from '../types/models'
 
 const CATEGORIES = ['הכל', 'שיעורים', 'כולל', 'חסד', 'אירועים', 'נוער']
 
@@ -10,9 +11,9 @@ const CATEGORIES = ['הכל', 'שיעורים', 'כולל', 'חסד', 'אירו�
  * Reads from the data provider so admin edits reflect live.
  */
 export default function Gallery() {
-  const galleryData = useCollection('gallery')
+  const galleryData = useCollection<GalleryItem>('gallery')
   const [filter, setFilter] = useState('הכל')
-  const [lightbox, setLightbox] = useState(null) // index within `items`
+  const [lightbox, setLightbox] = useState<number | null>(null) // index within `items`
 
   const items = useMemo(
     () => (filter === 'הכל' ? galleryData : galleryData.filter((g) => g.category === filter)),
@@ -26,13 +27,13 @@ export default function Gallery() {
 
   const active = lightbox != null ? items[lightbox] : null
 
-  const move = (dir) =>
+  const move = (dir: number) =>
     setLightbox((i) => (i == null ? i : (i + dir + items.length) % items.length))
 
   // keyboard controls
   useEffect(() => {
     if (lightbox == null) return
-    const onKey = (e) => {
+    const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setLightbox(null)
       if (e.key === 'ArrowLeft') move(1) // RTL: left = next
       if (e.key === 'ArrowRight') move(-1)
