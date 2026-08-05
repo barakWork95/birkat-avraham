@@ -1,7 +1,12 @@
-# מוסדות "ברכת אברהם" — אתר הדגמה (Phase 1)
+# מוסדות "ברכת אברהם"
 
-אתר תדמית ותרומות למוסדות **"ברכת אברהם"**, בראשות **הרב איתן אברהם שליט"א**.
-זהו **Phase 1** — דמו אינטראקטיבי מלא (Frontend בלבד) עם נתוני דמה, מוכן להצגה לרב ולחברי ההנהלה.
+אתר תדמית ותרומות למוסדות **"ברכת אברהם"** (רחובות), בראשות **הרב איתן אברהם שליט"א** —
+כולל אברכים, בית כנסת קהילתי ופעילות חסד. עברית מלאה, RTL.
+
+**חי בפרודקשן:** [birkat-avraham.com](https://birkat-avraham.com) (Firebase Hosting, SSL).
+תרומות אמיתיות זורמות דרך **נדרים פלוס**. ניהול תוכן חי דרך `/admin`.
+
+> זה כבר לא "דמו Phase 1" — האתר באוויר עם Firebase, סליקה חיה, והעלאת תמונות ל-Storage.
 
 ---
 
@@ -9,17 +14,18 @@
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
+npm run dev        # http://localhost:5173
 ```
 
-בנייה לפרודקשן:
+בלי `.env` האתר רץ במצב **הדגמה מקומי** (נתונים ב-localStorage). לחיבור Firebase/סליקה
+חיה צריך קובץ `.env` (ראו [משתני סביבה](#משתני-סביבה)). **דרישות:** Node 18+ (נבדק על Node 22).
 
 ```bash
-npm run build    # פלט ל-dist/
-npm run preview  # תצוגה מקומית של הבנייה
+npm run build      # פלט ל-dist/
+npm run preview    # תצוגה מקומית של הבנייה
+npm run typecheck  # tsc --noEmit
+npm test           # Vitest — בדיקות מסלולים קריטיים
 ```
-
-**דרישות:** Node 18+ (נבדק על Node 22).
 
 ---
 
@@ -28,12 +34,35 @@ npm run preview  # תצוגה מקומית של הבנייה
 | רכיב | טכנולוגיה |
 |------|-----------|
 | Framework | React 18 + Vite 6 |
-| עיצוב | Tailwind CSS 3 |
-| כיווניות | RTL מלא (`dir="rtl"`) |
-| גופנים | `Heebo` (כותרות) · `Assistant` (גוף וממשק) |
-| תלויות UI חיצוניות | **אין** — קרוסלה, טאבים, לייטבוקס ומגירת ניווט מומשו מאפס |
+| שפה | **TypeScript** (strict) — כל `src/` הוא `.ts/.tsx` |
+| עיצוב | Tailwind CSS 3 · RTL מלא · גופנים `Heebo`/`Assistant` |
+| Backend | **Firebase** — Firestore (תוכן), Auth (ניהול), Storage (תמונות) |
+| סליקה | **נדרים פלוס** (Nedarim Plus) דרך iframe מאובטח (מוסד `7004283`) |
+| זמנים | **Hebcal** (תאריך עברי, פרשה, זמני שבת) — ללא מפתח API |
+| בדיקות | Vitest (jsdom) |
+| תלויות UI חיצוניות | **אין** — קרוסלה, טאבים, לייטבוקס, אלבומים ומגירה מומשו מאפס |
 
-לוח הצבעים (זהב ומלכותיות) והגופנים מוגדרים ב-[`tailwind.config.js`](tailwind.config.js).
+---
+
+## ארכיטקטורה
+
+הלב הוא **הפשטת ספק נתונים (data provider)**: כל גישה לנתונים עוברת דרך חוזה `DataProvider`
+אחיד, כך שהחלפת ה-Backend היא שינוי של שורה אחת ואף רכיב UI לא משתנה.
+
+- **`src/services/dataProvider/`** — שני מימושים לאותו חוזה מטופס (`satisfies DataProvider`):
+  - `localProvider` — מצב הדגמה, מגובה `localStorage` (נזרע פעם אחת מ-`data/mockData.ts`).
+  - `firebaseProvider` — פרודקשן, מגובה Firestore (+ Storage לתמונות).
+  - הבחירה לפי `VITE_DATA_PROVIDER` ב-`index.ts`.
+- **`src/services/auth/`** — אותו דפוס: `localAuth` (קוד גישה) מול `firebaseAuth` (אימייל+סיסמה).
+- **`src/config/collections.ts`** — **סכימה אחת שמניעה את כל פאנל הניהול**. הוספת שדה כאן →
+  מופיע אוטומטית בעורך; הוספת אוסף → מופיע אוטומטית בסיידבר. שדות תומכים ב-`showIf`
+  (הצגה מותנית) ובטיפוס `media` (ריפיטר אלבומים).
+- **`src/hooks/`** — הרכיבים נוגעים בנתונים רק דרך hooks (`useCollection<T>` גנרי,
+  `useInfo`, `useDonation`, `useSchedule`, `useEvents`, `useZmanim`). `useCollection`
+  מחזיר `{ items, loading }` כדי להציג שלד טעינה בקריאת Firestore קרה במקום להבהב ריק.
+
+**מודל הנתונים ב-Firestore:** כל אוסף תוכן = אוסף Firestore באותו שם (מסמכים נושאים שדה
+`order` לסידור מהניהול); סינגלטונים תחת `singletons/{name}` (כרגע רק `info`).
 
 ---
 
@@ -41,62 +70,79 @@ npm run preview  # תצוגה מקומית של הבנייה
 
 ```
 src/
-├── App.jsx                    # הרכבת כל המקטעים + גלילה חלקה ל-CTA תרומה
-├── data/
-│   └── mockData.js            # ✦ מקור אמת יחיד לכל התוכן (Phase 2: מיפוי 1:1 ל-API)
-├── hooks/                     # ✦ שכבת גישה לנתונים — כאן מתחברים ל-Backend
-│   ├── useSchedule.js         #   לוח זמנים + טאב פעיל
-│   ├── useDonation.js         #   סטייט טופס תרומה, ולידציה, submit (מוק)
-│   ├── useEvents.js           #   אירועים קרובים
-│   └── useZmanim.js           #   תאריך עברי, פרשה, זמני שבת (Phase 2: Hebcal)
-└── components/
-    ├── TopBar.jsx             # רצועת זמנים ותאריך עברי
-    ├── Navbar.jsx             # ניווט sticky + מגירת מובייל
-    ├── Hero.jsx               # כותרת ראשית + שלושת עמודי המוסדות
-    ├── DonationSection.jsx    # מעטפת מקטע התרומות
-    │   ├── ImpactCarousel.jsx #   קרוסלה אוטומטית "לאן הכסף הולך"
-    │   └── DonationWidget.jsx #   וידג'ט תרומה מלא
-    ├── Schedule.jsx           # לו"ז בתצוגת טאבים
-    ├── Leadership.jsx         # רשת בעלי תפקידים
-    ├── Gallery.jsx            # גלריה מסוננת + לייטבוקס (מקלדת + מגע)
-    ├── Location.jsx           # מפה, Waze, פרטי קשר
-    ├── Footer.jsx             # פוטר מלא
-    └── ui/                    # פרימיטיבים משותפים (Icons, Avatar, SectionTitle)
+├── main.tsx                   # נקודת כניסה; עוטף ב-ErrorBoundary
+├── App.tsx                    # הרכבת המקטעים + splash עד טעינת פרטי המוסד
+├── types/models.ts            # מודלי הדומיין (Contact, GalleryItem, MediaEntry, …)
+├── config/collections.ts      # ✦ הסכימה שמניעה את פאנל הניהול
+├── data/mockData.ts           # זרע מצב ההדגמה (מטופס ב-satisfies מול המודלים)
+├── services/
+│   ├── dataProvider/          # localProvider · firebaseProvider · חוזה DataProvider
+│   ├── auth/                  # localAuth · firebaseAuth · חוזה AuthProvider
+│   ├── firebase.ts            # אתחול Firebase משותף
+│   └── nedarimPlus.ts         # בניית payload + סליקה חיה דרך ה-iframe
+├── hooks/                     # שכבת הגישה לנתונים (useCollection<T> ועוד)
+├── components/                # אתר הציבור (Hero, Schedule, Gallery, Donation…)
+│   └── ui/                    # פרימיטיבים (Icons, Avatar, SectionTitle, Skeleton)
+└── admin/                     # פאנל הניהול (schema-driven) תחת /admin
 ```
 
 ---
 
-## מה עובד בדמו (הכל client-side)
+## פיצ'רים עיקריים
 
-- ✅ **קרוסלת Impact** — החלפה אוטומטית, חיצים, נקודות, החלקה במגע, השהיה ב-hover.
-- ✅ **וידג'ט תרומה** — סכומים מוגדרים, סכום חופשי, חד-פעמי/הוראת קבע, ולידציה, מסך תודה.
-- ✅ **לו"ז בטאבים** — תפילות / שיעורים / סדרי כולל.
-- ✅ **גלריה + לייטבוקס** — סינון לפי קטגוריה, ניווט במקלדת (Esc / חיצים), תמיכה בווידאו.
-- ✅ **ניווט מובייל** — מגירה מלאה עם נעילת גלילה.
-- ✅ **רספונסיבי Mobile-First** + כפתור תרומה צף במובייל.
-- ✅ **נגישות** — `aria-label`, ניווט מקלדת, `prefers-reduced-motion`.
-
----
-
-## מעבר ל-Phase 2 (חיבור Backend)
-
-הארכיטקטורה בנויה כך שה-**UI לא משתנה** בעת החיבור לשרת. כל הגישה לנתונים
-עוברת דרך `data/mockData.js` וה-hooks:
-
-1. **נתונים** — כל `export` ב-`mockData.js` ממופה לנקודת קצה אחת:
-   `scheduleData → GET /api/schedule`, `leadershipData → GET /api/staff`, וכו'.
-2. **Hooks** — להחליף את גוף ה-hook מ-`import` סטטי ל-`fetch`/GraphQL,
-   תוך שמירה על אותו מבנה החזרה. אף רכיב UI לא צריך להשתנות.
-3. **תרומות** — ב-[`useDonation.js`](src/hooks/useDonation.js) קיימת נקודת חיבור מסומנת
-   (`// Phase 2 integration point`) להחלפת ה-submit המדומה בסליקה ישראלית אמיתית
-   (**נדרים פלוס / משולם / טרנזילה**). לוגיקת הטופס והוולידציה כבר מוכנות.
-4. **זמנים** — ב-[`useZmanim.js`](src/hooks/useZmanim.js) יש הערות עם קריאות ה-Hebcal
-   המדויקות (Petah Tikva geonameid) למילוי תאריך עברי, פרשה וזמני שבת חיים.
+- **תרומות חיות** — סכומים מוגדרים, סכום חופשי, חד-פעמי/הוראת קבע, ולידציה, ומסך תודה.
+  הסליקה עצמה ב-iframe של נדרים פלוס (פרטי הכרטיס לעולם לא נוגעים בדף). ללא טוקן → מצב הדגמה.
+- **לו"ז בטאבים** — **תפילות** (ברירת מחדל) · שיעורים · כולל ערב. כל טאב = אוסף נפרד, נערך בניהול.
+- **גלריה + אלבומים** — סינון לפי קטגוריה, לייטבוקס עם ניווט מקלדת. פריט יכול להיות תמונה/וידאו
+  בודדים או **אלבום** (`media[]`) עם דפדוף פנימי; ניהול האלבום דרך ריפיטר מדיה עם העלאה מרובה.
+- **זמנים חיים** — תאריך עברי, פרשה וזמני שבת מ-Hebcal (מטמון יומי, נפילה לנתוני גיבוי).
+- **פאנל ניהול** — כניסה ב-`/admin`, עריכת כל האוספים + פרטי המוסד, העלאת תמונות ל-Storage,
+  סידור מחדש, שחזור לברירת מחדל. שינויים משתקפים באתר החי מיידית.
+- **UX** — רספונסיבי mobile-first, מגירת ניווט, כפתור תרומה צף, שלדי טעינה, `ErrorBoundary`, נגישות.
 
 ---
 
-## הערות תוכן לדמו
+## משתני סביבה
 
-כל הנתונים ב-`mockData.js` הם **דמה** לצורך ההדגמה (שמות, טלפונים, כתובת, תמונות).
-התמונות מיוצגות במעברי צבע זהב-חום ובמונוגרמות — אין תלות בקבצי מדיה חיצוניים.
-לפני עלייה לאוויר יש להחליף לנתונים ולתמונות אמיתיים.
+הקובץ `.env` **מוחרג מגיט** ומחזיק את הקונפיג של Firebase + טוקן נדרים. בלי `.env` האתר רץ
+במצב הדגמה מקומי. המפתחות:
+
+| משתנה | תיאור |
+|-------|-------|
+| `VITE_DATA_PROVIDER` | `local` (הדגמה) או `firebase` (חי) |
+| `VITE_FB_*` | קונפיג פרויקט Firebase — `API_KEY`, `AUTH_DOMAIN`, `PROJECT_ID`, `STORAGE_BUCKET`, `SENDER_ID`, `APP_ID`, `MEASUREMENT_ID` |
+| `VITE_NEDARIM_API_VALID` | טוקן ApiValid של נדרים פלוס. קיים → סליקה אמיתית; חסר → הדגמה |
+| `VITE_ADMIN_PASSCODE` | קוד הגישה לניהול במצב הדגמה מקומי (במצב Firebase — אימייל+סיסמה) |
+
+**שתי סביבות:** `.env` = פרודקשן, `.env.staging` = staging. פרטים ב-[`ENVIRONMENTS.md`](ENVIRONMENTS.md).
+
+> ⚠️ אף פעם לא לקמט סודות. `.env`/`.env.staging` מוחרגים; לפני commit ודאו שהטוקנים לא בדיף.
+
+---
+
+## בדיקות
+
+```bash
+npm test           # ריצה חד-פעמית
+npm run test:watch # מצב watch
+```
+
+Vitest (סביבת jsdom) מכסה את המסלולים הקריטיים:
+- **`nedarimPlus`** — בניית ה-payload (חד-פעמי מול הוראת קבע, פיצול שם, ברירות מחדל, טיפוסים).
+- **`localProvider`** — CRUD, סידור מחדש, שחזור לזרע, מנויים (subscribe), וסינגלטונים.
+
+---
+
+## פריסה (Deploy)
+
+Firebase Hosting, בזרימת **preview → promote**. הפריסה דורשת את חשבון ה-Google של המשתמש
+(ה-login של Firebase CLI אינטראקטיבי):
+
+```bash
+npm run deploy:preview   # ערוץ זמני לבדיקה
+npm run deploy           # קידום לפרודקשן
+npm run deploy:staging   # לפרויקט ה-staging
+```
+
+runbook מלא ב-[`DEPLOY.md`](DEPLOY.md); זרימת הסביבות ב-[`ENVIRONMENTS.md`](ENVIRONMENTS.md).
+זריעת Firestore מ-`mockData`: `scripts/seedFirestore.mjs` (מקבל `ENV_FILE` לכל סביבה).
