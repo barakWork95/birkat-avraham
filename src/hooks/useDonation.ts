@@ -1,4 +1,4 @@
-import { useMemo, useState, type RefObject } from 'react'
+import { useEffect, useMemo, useState, type RefObject } from 'react'
 import {
   buildNedarimPayload,
   handleNedarimDonation,
@@ -38,6 +38,9 @@ export function useDonation({ onDonate = handleNedarimDonation, iframeRef }: Use
   const { items: tiers } = useCollection<DonationTier>('donationTiers')
   const [amount, setAmount] = useState(180)
   const [custom, setCustom] = useState('')
+  // Whether the donor has picked a tier/custom amount themselves. Until then the
+  // selection follows the recommended (מומלץ) tier from admin.
+  const [touched, setTouched] = useState(false)
   const [donationType, setDonationType] = useState<DonationType>('one-time')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -45,6 +48,15 @@ export function useDonation({ onDonate = handleNedarimDonation, iframeRef }: Use
   const [status, setStatus] = useState<Status>('idle')
   const [errors, setErrors] = useState<FormErrors>({})
   const [lastResult, setLastResult] = useState<DonationResult | null>(null)
+
+  // Default the highlighted amount to the recommended (מומלץ) tier once tiers
+  // load — falling back to the first tier — so the highlight and the "מומלץ"
+  // badge track the same admin checkbox. The donor's own pick takes over.
+  useEffect(() => {
+    if (touched || custom || tiers.length === 0) return
+    const preferred = tiers.find((t) => t.popular) ?? tiers[0]
+    if (preferred) setAmount(preferred.amount)
+  }, [tiers, touched, custom])
 
   const effectiveAmount = custom ? Number(custom) : amount
 
@@ -58,6 +70,7 @@ export function useDonation({ onDonate = handleNedarimDonation, iframeRef }: Use
   }
 
   const selectTier = (value: number) => {
+    setTouched(true)
     setCustom('')
     setAmount(value)
   }
