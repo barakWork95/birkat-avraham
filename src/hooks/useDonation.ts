@@ -35,7 +35,7 @@ interface FormErrors {
  * service can charge through it. Swap the callback for tests/alternate gateways.
  */
 export function useDonation({ onDonate = handleNedarimDonation, iframeRef }: UseDonationOpts = {}) {
-  const tiers = useCollection<DonationTier>('donationTiers')
+  const { items: tiers } = useCollection<DonationTier>('donationTiers')
   const [amount, setAmount] = useState(180)
   const [custom, setCustom] = useState('')
   const [donationType, setDonationType] = useState<DonationType>('one-time')

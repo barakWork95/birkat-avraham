@@ -10,7 +10,7 @@ import { provider } from '../services/dataProvider'
 export default function CollectionList() {
   const { name } = useParams()
   const schema = name ? COLLECTIONS[name] : undefined
-  const items = useCollection(name ?? '')
+  const { items, loading } = useCollection(name ?? '')
 
   if (!name || !schema) return <p className="text-ink-muted">קטגוריה לא נמצאה.</p>
 
@@ -39,7 +39,10 @@ export default function CollectionList() {
       </div>
 
       <div className="flex flex-col gap-2">
-        {items.length === 0 && (
+        {loading && items.length === 0 && (
+          <div className="card p-8 text-center text-ink-muted">טוען…</div>
+        )}
+        {!loading && items.length === 0 && (
           <div className="card p-8 text-center text-ink-muted">אין עדיין פריטים. לחצו על "הוספה".</div>
         )}
         {items.map((item, idx) => (

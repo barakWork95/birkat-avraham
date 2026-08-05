@@ -16,7 +16,7 @@ export function useSchedule() {
   const shiurim = useCollection<ScheduleItem>('scheduleShiurim')
   const kollel = useCollection<ScheduleItem>('scheduleKollel')
 
-  const items = activeTab === 'shiurim' ? shiurim : kollel
+  const active = activeTab === 'shiurim' ? shiurim : kollel
 
-  return { tabs: TABS, activeTab, setActiveTab, items }
+  return { tabs: TABS, activeTab, setActiveTab, items: active.items, loading: active.loading }
 }

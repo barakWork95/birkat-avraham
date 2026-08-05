@@ -1,5 +1,6 @@
 import { useEvents } from '../hooks/useEvents'
 import SectionTitle from './ui/SectionTitle'
+import Skeleton from './ui/Skeleton'
 import { CalendarIcon } from './ui/Icons'
 
 /**
@@ -18,7 +19,7 @@ function formatGregorian(date: string | undefined): string | null {
 }
 
 export default function Events() {
-  const { events } = useEvents()
+  const { events, loading } = useEvents()
 
   return (
     <section id="events" className="scroll-mt-28 py-16 sm:py-24">
@@ -29,7 +30,13 @@ export default function Events() {
           subtitle="הילולות, מעמדי סיום, שיעורים מיוחדים ופעילות חסד — הצטרפו אלינו."
         />
 
-        {events.length === 0 ? (
+        {loading && events.length === 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-28 w-full !rounded-2xl" />
+            ))}
+          </div>
+        ) : events.length === 0 ? (
           <div className="mx-auto max-w-md rounded-2xl border border-dashed border-gold/30 bg-white/50 px-6 py-12 text-center">
             <CalendarIcon className="mx-auto mb-3 h-8 w-8 text-gold" />
             <p className="font-semibold text-ink">אין אירועים קרובים כרגע</p>

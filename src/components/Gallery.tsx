@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import SectionTitle from './ui/SectionTitle'
+import Skeleton from './ui/Skeleton'
 import { PlayIcon, CloseIcon, ChevronLeft, ChevronRight } from './ui/Icons'
 import { useCollection } from '../hooks/useCollection'
 import type { GalleryItem } from '../types/models'
@@ -11,7 +12,7 @@ const CATEGORIES = ['הכל', 'שיעורים', 'כולל', 'חסד', 'אירו�
  * Reads from the data provider so admin edits reflect live.
  */
 export default function Gallery() {
-  const galleryData = useCollection<GalleryItem>('gallery')
+  const { items: galleryData, loading } = useCollection<GalleryItem>('gallery')
   const [filter, setFilter] = useState('הכל')
   const [lightbox, setLightbox] = useState<number | null>(null) // index within `items`
 
@@ -72,7 +73,24 @@ export default function Gallery() {
           ))}
         </div>
 
+        {/* Loading skeletons (cold Firestore read) */}
+        {loading && galleryData.length === 0 && (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-square !rounded-2xl" />
+            ))}
+          </div>
+        )}
+
+        {/* Empty state (loaded, nothing in this filter) */}
+        {!loading && items.length === 0 && (
+          <div className="mx-auto max-w-md rounded-2xl border border-dashed border-gold/30 bg-white/50 px-6 py-12 text-center text-ink-muted">
+            אין עדיין פריטים בגלריה.
+          </div>
+        )}
+
         {/* Grid */}
+        {items.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {items.map((g, i) => (
             <button
@@ -104,6 +122,7 @@ export default function Gallery() {
             </button>
           ))}
         </div>
+        )}
       </div>
 
       {/* Lightbox */}

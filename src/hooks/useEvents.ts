@@ -8,7 +8,7 @@ import type { EventItem } from '../types/models'
  * rest soonest-first. Events with no/invalid date are kept (shown last).
  */
 export function useEvents() {
-  const all = useCollection<EventItem>('events')
+  const { items: all, loading } = useCollection<EventItem>('events')
 
   const events = useMemo(() => {
     const today = new Date()
@@ -27,5 +27,5 @@ export function useEvents() {
       })
   }, [all])
 
-  return { events }
+  return { events, loading }
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type TouchEvent } from 'react'
 import { ChevronLeft, ChevronRight } from './ui/Icons'
+import Skeleton from './ui/Skeleton'
 import { useCollection } from '../hooks/useCollection'
 import type { ImpactSlide } from '../types/models'
 
@@ -9,7 +10,7 @@ import type { ImpactSlide } from '../types/models'
  * Reads from the data provider so admin edits reflect live.
  */
 export default function ImpactCarousel() {
-  const impactSlides = useCollection<ImpactSlide>('impact')
+  const { items: impactSlides, loading } = useCollection<ImpactSlide>('impact')
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const touchX = useRef<number | null>(null)
@@ -35,6 +36,18 @@ export default function ImpactCarousel() {
     // RTL: swipe left → next, swipe right → prev
     if (Math.abs(dx) > 40) go(index + (dx < 0 ? 1 : -1))
     touchX.current = null
+  }
+
+  // Loading (cold Firestore read) or genuinely empty — never render an empty
+  // carousel shell with floating arrows over a blank box.
+  if (impactSlides.length === 0) {
+    return loading ? (
+      <Skeleton className="aspect-[4/3] w-full !rounded-3xl sm:aspect-[16/10]" />
+    ) : (
+      <div className="grid aspect-[4/3] w-full place-items-center rounded-3xl bg-ink text-center shadow-card-hover ring-1 ring-ink/5 sm:aspect-[16/10]">
+        <span className="font-heading text-lg text-white/70">בקרוב</span>
+      </div>
+    )
   }
 
   return (

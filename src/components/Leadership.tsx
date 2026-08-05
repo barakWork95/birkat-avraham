@@ -1,5 +1,6 @@
 import SectionTitle from './ui/SectionTitle'
 import Avatar from './ui/Avatar'
+import Skeleton from './ui/Skeleton'
 import { useCollection } from '../hooks/useCollection'
 import type { Contact } from '../types/models'
 
@@ -11,7 +12,7 @@ import type { Contact } from '../types/models'
  * panel reflect here immediately — the proven end-to-end slice.
  */
 export default function Leadership() {
-  const leadershipData = useCollection<Contact>('leadership')
+  const { items: leadershipData, loading } = useCollection<Contact>('leadership')
   const featured = leadershipData.find((p) => p.featured)
   const rest = leadershipData.filter((p) => !p.featured)
 
@@ -23,6 +24,20 @@ export default function Leadership() {
           title="אנשי קשר ובעלי תפקידים"
           subtitle="העומדים בראש המוסדות ומובילים את פעילות התורה, התפילה והחסד."
         />
+
+        {/* Loading skeletons (cold Firestore read) */}
+        {loading && leadershipData.length === 0 && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="card flex flex-col items-center p-6">
+                <Skeleton className="h-20 w-20 !rounded-full" />
+                <Skeleton className="mt-4 h-4 w-32" />
+                <Skeleton className="mt-2 h-3 w-20" />
+                <Skeleton className="mt-3 h-3 w-40" />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Featured */}
         {featured && (

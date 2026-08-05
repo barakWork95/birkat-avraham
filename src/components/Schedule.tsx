@@ -1,5 +1,6 @@
 import { useSchedule } from '../hooks/useSchedule'
 import SectionTitle from './ui/SectionTitle'
+import Skeleton from './ui/Skeleton'
 import { ClockIcon, PinIcon } from './ui/Icons'
 
 /**
@@ -7,7 +8,7 @@ import { ClockIcon, PinIcon } from './ui/Icons'
  * Data + active tab come from useSchedule().
  */
 export default function Schedule() {
-  const { tabs, activeTab, setActiveTab, items } = useSchedule()
+  const { tabs, activeTab, setActiveTab, items, loading } = useSchedule()
 
   return (
     <section id="schedule" className="scroll-mt-28 py-16 sm:py-24">
@@ -37,7 +38,24 @@ export default function Schedule() {
           </div>
         </div>
 
+        {/* Loading skeletons (cold Firestore read) */}
+        {loading && items.length === 0 && (
+          <div className="mx-auto grid max-w-4xl gap-3 sm:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-[76px] w-full !rounded-2xl" />
+            ))}
+          </div>
+        )}
+
+        {/* Empty state (loaded, no items in this tab) */}
+        {!loading && items.length === 0 && (
+          <div className="mx-auto max-w-md rounded-2xl border border-dashed border-gold/30 bg-white/50 px-6 py-10 text-center text-ink-muted">
+            אין שיעורים משובצים כרגע.
+          </div>
+        )}
+
         {/* Items */}
+        {items.length > 0 && (
         <div key={activeTab} className="mx-auto grid max-w-4xl gap-3 sm:grid-cols-2">
           {items.map((item, i) => (
             <div
@@ -65,6 +83,7 @@ export default function Schedule() {
             </div>
           ))}
         </div>
+        )}
       </div>
     </section>
   )
