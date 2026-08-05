@@ -5,6 +5,7 @@ import { useInfo } from '../hooks/useInfo'
 const NAV_LINKS = [
   { href: '#hero', label: 'בית' },
   { href: '#schedule', label: 'לוח זמנים' },
+  { href: '#bulletin', label: 'העלון' },
   { href: '#leadership', label: 'אנשי קשר' },
   { href: '#gallery', label: 'גלריה' },
   { href: '#events', label: 'אירועים' },

@@ -14,6 +14,7 @@ export default function Footer({ onDonate }: FooterProps) {
 
   const links = [
     { href: '#schedule', label: 'לוח זמנים' },
+    { href: '#bulletin', label: 'העלון השבועי' },
     { href: '#leadership', label: 'אנשי קשר' },
     { href: '#gallery', label: 'גלריה' },
     { href: '#donate', label: 'תרומה' },

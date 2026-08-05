@@ -95,6 +95,13 @@ export const StackIcon = ({ className = 'h-5 w-5' }: IconProps) => (
   </svg>
 )
 
+export const DownloadIcon = ({ className = 'h-5 w-5' }: IconProps) => (
+  <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
+    <path d="M5 19h14" />
+  </svg>
+)
+
 export const BookIcon = ({ className = 'h-6 w-6' }: IconProps) => (
   <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
     <path d="M12 6c-1.5-1.2-3.5-1.8-6-1.8V18c2.5 0 4.5.6 6 1.8 1.5-1.2 3.5-1.8 6-1.8V4.2c-2.5 0-4.5.6-6 1.8zM12 6v13.8" strokeLinejoin="round" />

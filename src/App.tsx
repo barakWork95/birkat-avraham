@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import DonationSection from './components/DonationSection'
 import Schedule from './components/Schedule'
+import WeeklyBulletin from './components/WeeklyBulletin'
 import Leadership from './components/Leadership'
 import Gallery from './components/Gallery'
 import Events from './components/Events'
@@ -67,6 +68,7 @@ export default function App() {
         <Hero onDonate={scrollToDonate} />
         <DonationSection ref={donateRef} />
         <Schedule />
+        <WeeklyBulletin />
         <Leadership />
         <Gallery />
         <Events />
