@@ -1,13 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { COLLECTIONS, COLLECTION_KEYS } from '../config/collections'
 import { MenuIcon, CloseIcon } from '../components/ui/Icons'
+import type { AuthUser } from '../services/auth/types'
+
+interface AdminLayoutProps {
+  children: ReactNode
+  user: AuthUser | null
+  onSignOut: () => void
+}
 
 /**
  * AdminLayout — top bar + collections nav + content outlet.
  * The nav is a fixed sidebar on desktop and a slide-in drawer on mobile.
  */
-export default function AdminLayout({ children, user, onSignOut }) {
+export default function AdminLayout({ children, user, onSignOut }: AdminLayoutProps) {
   const { pathname } = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -24,13 +31,13 @@ export default function AdminLayout({ children, user, onSignOut }) {
 
   // Single source of truth for the admin nav (dashboard + collections + info).
   const navItems = [
-    { to: '/admin', label: 'לוח בקרה', match: (p) => p === '/admin' },
+    { to: '/admin', label: 'לוח בקרה', match: (p: string) => p === '/admin' },
     ...COLLECTION_KEYS.map((key) => ({
       to: `/admin/${key}`,
       label: COLLECTIONS[key].label,
-      match: (p) => p.startsWith(`/admin/${key}`),
+      match: (p: string) => p.startsWith(`/admin/${key}`),
     })),
-    { to: '/admin/info', label: 'פרטי מוסד', match: (p) => p.startsWith('/admin/info') },
+    { to: '/admin/info', label: 'פרטי מוסד', match: (p: string) => p.startsWith('/admin/info') },
   ]
 
   const NavList = () => (

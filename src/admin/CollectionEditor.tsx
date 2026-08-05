@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { COLLECTIONS } from '../config/collections'
 import { provider } from '../services/dataProvider'
+
+type FormState = Record<string, any>
 
 /**
  * CollectionEditor — generic add/edit form, rendered from the collection schema.
@@ -9,15 +11,16 @@ import { provider } from '../services/dataProvider'
 export default function CollectionEditor() {
   const { name, id } = useParams()
   const navigate = useNavigate()
-  const schema = COLLECTIONS[name]
+  const schema = name ? COLLECTIONS[name] : undefined
   const isNew = id === 'new'
 
-  const [form, setForm] = useState(null)
-  const [errors, setErrors] = useState({})
+  const [form, setForm] = useState<FormState | null>(null)
+  const [errors, setErrors] = useState<Record<string, string | undefined>>({})
   const [busy, setBusy] = useState(false)
-  const [uploading, setUploading] = useState(null) // key currently uploading
+  const [uploading, setUploading] = useState<string | null>(null) // key currently uploading
 
   useEffect(() => {
+    if (!schema || !name) return
     if (isNew) {
       setForm({ ...schema.defaults })
     } else {
@@ -28,11 +31,17 @@ export default function CollectionEditor() {
     }
   }, [name, id, isNew, schema])
 
+  const fieldCls =
+    'w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink placeholder:text-ink-muted/60 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20'
+
+  if (!schema || !name) return <p className="text-ink-muted">קטגוריה לא נמצאה.</p>
+  if (!form) return <p className="text-ink-muted">טוען…</p>
+
   const backTo = `/admin/${name}`
 
-  const set = (key, val) => setForm((f) => ({ ...f, [key]: val }))
+  const set = (key: string, val: unknown) => setForm((f) => ({ ...f, [key]: val }))
 
-  const onPickImage = async (key, file) => {
+  const onPickImage = async (key: string, file?: File) => {
     if (!file) return
     setErrors((e) => ({ ...e, [key]: undefined }))
     setUploading(key)
@@ -43,20 +52,20 @@ export default function CollectionEditor() {
       // Clean up the replaced image (best-effort; no-op in local mode).
       if (previous) provider.deleteImage?.(previous)
     } catch (err) {
-      setErrors((e) => ({ ...e, [key]: err.message || 'העלאת התמונה נכשלה' }))
+      setErrors((e) => ({ ...e, [key]: (err as Error).message || 'העלאת התמונה נכשלה' }))
     } finally {
       setUploading(null)
     }
   }
 
-  const onRemoveImage = (key) => {
+  const onRemoveImage = (key: string) => {
     const previous = form[key]
     set(key, '')
     if (previous) provider.deleteImage?.(previous)
   }
 
   const validate = () => {
-    const e = {}
+    const e: Record<string, string | undefined> = {}
     schema.fields.forEach((f) => {
       if (f.required && !String(form[f.key] ?? '').trim()) e[f.key] = 'שדה חובה'
     })
@@ -68,20 +77,14 @@ export default function CollectionEditor() {
     if (!validate()) return
     setBusy(true)
     // coerce number fields
-    const payload = { ...form }
+    const payload: FormState = { ...form }
     schema.fields.forEach((f) => {
       if (f.type === 'number') payload[f.key] = Number(payload[f.key]) || 0
     })
     if (isNew) await provider.create(name, payload)
-    else await provider.update(name, id, payload)
+    else if (id) await provider.update(name, id, payload)
     navigate(backTo)
   }
-
-  const fieldCls =
-    'w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink placeholder:text-ink-muted/60 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20'
-
-  if (!schema) return <p className="text-ink-muted">קטגוריה לא נמצאה.</p>
-  if (!form) return <p className="text-ink-muted">טוען…</p>
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -113,7 +116,7 @@ export default function CollectionEditor() {
               )}
               {f.type === 'select' && (
                 <select value={form[f.key] ?? ''} onChange={(e) => set(f.key, e.target.value)} className={fieldCls}>
-                  {f.options.map((o) => (
+                  {(f.options ?? []).map((o) => (
                     <option key={o} value={o}>{o}</option>
                   ))}
                 </select>

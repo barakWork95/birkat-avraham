@@ -1,16 +1,22 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
+import type { AuthUser } from '../services/auth/types'
+
+interface LoginProps {
+  onSignIn: (usernameOrEmail: string, password?: string) => Promise<AuthUser | null>
+  mode: 'local' | 'firebase'
+}
 
 /**
  * Login — passcode gate for the demo admin (local mode).
  * In Firebase mode this becomes email + password.
  */
-export default function Login({ onSignIn, mode }) {
+export default function Login({ onSignIn, mode }: LoginProps) {
   const [value, setValue] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
-  const submit = async (e) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault()
     setBusy(true)
     setError('')
@@ -18,7 +24,7 @@ export default function Login({ onSignIn, mode }) {
       if (mode === 'firebase') await onSignIn(value, password)
       else await onSignIn(value)
     } catch (err) {
-      setError(err.message || 'התחברות נכשלה')
+      setError((err as Error).message || 'התחברות נכשלה')
     } finally {
       setBusy(false)
     }

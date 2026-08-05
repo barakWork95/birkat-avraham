@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { provider } from '../services/dataProvider'
 
+type InfoForm = Record<string, any>
+
 /**
  * InfoEditor — dedicated editor for the institution-info singleton
  * (scalars + a contacts repeater + bank-transfer fields).
@@ -21,7 +23,7 @@ const SCALARS = [
 ]
 
 export default function InfoEditor() {
-  const [form, setForm] = useState(null)
+  const [form, setForm] = useState<InfoForm | null>(null)
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
@@ -30,26 +32,26 @@ export default function InfoEditor() {
 
   if (!form) return <p className="text-ink-muted">טוען…</p>
 
-  const set = (key, val) => {
+  const set = (key: string, val: unknown) => {
     setForm((f) => ({ ...f, [key]: val }))
     setSaved(false)
   }
-  const setBank = (key, val) => {
-    setForm((f) => ({ ...f, bankTransfer: { ...f.bankTransfer, [key]: val } }))
+  const setBank = (key: string, val: unknown) => {
+    setForm((f) => ({ ...f, bankTransfer: { ...f!.bankTransfer, [key]: val } }))
     setSaved(false)
   }
-  const setContact = (i, key, val) => {
+  const setContact = (i: number, key: string, val: unknown) => {
     setForm((f) => {
-      const contacts = [...f.contacts]
+      const contacts = [...f!.contacts]
       contacts[i] = { ...contacts[i], [key]: val }
       return { ...f, contacts }
     })
     setSaved(false)
   }
   const addContact = () =>
-    setForm((f) => ({ ...f, contacts: [...f.contacts, { id: `c-${Date.now()}`, label: '', phone: '' }] }))
-  const removeContact = (i) =>
-    setForm((f) => ({ ...f, contacts: f.contacts.filter((_, idx) => idx !== i) }))
+    setForm((f) => ({ ...f, contacts: [...f!.contacts, { id: `c-${Date.now()}`, label: '', phone: '' }] }))
+  const removeContact = (i: number) =>
+    setForm((f) => ({ ...f, contacts: f!.contacts.filter((_: unknown, idx: number) => idx !== i) }))
 
   const save = async () => {
     await provider.setSingleton('info', form)
@@ -89,7 +91,7 @@ export default function InfoEditor() {
             + הוספת טלפון
           </button>
         </div>
-        {form.contacts.map((c, i) => (
+        {form.contacts.map((c: any, i: number) => (
           <div key={c.id || i} className="flex flex-wrap items-center gap-2">
             <input
               type="text"

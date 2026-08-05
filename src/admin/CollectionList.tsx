@@ -9,12 +9,12 @@ import { provider } from '../services/dataProvider'
  */
 export default function CollectionList() {
   const { name } = useParams()
-  const schema = COLLECTIONS[name]
-  const items = useCollection(name)
+  const schema = name ? COLLECTIONS[name] : undefined
+  const items = useCollection(name ?? '')
 
-  if (!schema) return <p className="text-ink-muted">קטגוריה לא נמצאה.</p>
+  if (!name || !schema) return <p className="text-ink-muted">קטגוריה לא נמצאה.</p>
 
-  const onDelete = async (id, title) => {
+  const onDelete = async (id: string, title: string) => {
     if (window.confirm(`למחוק את "${title}"?`)) await provider.remove(name, id)
   }
   const onReset = async () => {

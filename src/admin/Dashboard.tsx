@@ -11,7 +11,7 @@ import { provider } from '../services/dataProvider'
  * Firebase mode — so we fetch each collection on mount.
  */
 export default function Dashboard() {
-  const [counts, setCounts] = useState(() =>
+  const [counts, setCounts] = useState<Record<string, number>>(() =>
     Object.fromEntries(COLLECTION_KEYS.map((k) => [k, provider.getAllSync?.(k)?.length ?? 0])),
   )
 
