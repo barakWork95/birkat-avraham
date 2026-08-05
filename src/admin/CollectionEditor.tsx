@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { COLLECTIONS } from '../config/collections'
 import { provider } from '../services/dataProvider'
+import type { MediaEntry } from '../types/models'
 
 type FormState = Record<string, any>
+
+const genMediaId = () => `m-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
 
 /**
  * CollectionEditor — generic add/edit form, rendered from the collection schema.
@@ -17,7 +20,8 @@ export default function CollectionEditor() {
   const [form, setForm] = useState<FormState | null>(null)
   const [errors, setErrors] = useState<Record<string, string | undefined>>({})
   const [busy, setBusy] = useState(false)
-  const [uploading, setUploading] = useState<string | null>(null) // key currently uploading
+  const [uploading, setUploading] = useState<string | null>(null) // image-field key currently uploading
+  const [mediaUploading, setMediaUploading] = useState<string | null>(null) // media-field key uploading
 
   useEffect(() => {
     if (!schema || !name) return
@@ -64,9 +68,74 @@ export default function CollectionEditor() {
     if (previous) provider.deleteImage?.(previous)
   }
 
+  // ── Media repeater (album `media[]`) — functional updates avoid stale closures.
+  const getMedia = (key: string): MediaEntry[] => (Array.isArray(form[key]) ? form[key] : [])
+  const mutateMedia = (key: string, fn: (arr: MediaEntry[]) => MediaEntry[]) =>
+    setForm((f) => ({ ...f, [key]: fn(Array.isArray(f?.[key]) ? f![key] : []) }))
+
+  const addMediaEntry = (key: string, entry: Partial<MediaEntry> = {}) =>
+    mutateMedia(key, (arr) => [
+      ...arr,
+      { id: genMediaId(), type: 'photo', image: '', videoUrl: '', caption: '', ...entry },
+    ])
+
+  const updateMediaEntry = (key: string, i: number, patch: Partial<MediaEntry>) =>
+    mutateMedia(key, (arr) => arr.map((m, idx) => (idx === i ? { ...m, ...patch } : m)))
+
+  const removeMediaEntry = (key: string, i: number) => {
+    const previous = getMedia(key)[i]?.image
+    mutateMedia(key, (arr) => arr.filter((_, idx) => idx !== i))
+    if (previous) provider.deleteImage?.(previous)
+  }
+
+  const moveMediaEntry = (key: string, i: number, dir: -1 | 1) =>
+    mutateMedia(key, (arr) => {
+      const j = i + dir
+      if (j < 0 || j >= arr.length) return arr
+      const next = arr.slice()
+      ;[next[i], next[j]] = [next[j], next[i]]
+      return next
+    })
+
+  const uploadMediaFiles = async (key: string, files: FileList | null) => {
+    if (!files || files.length === 0) return
+    setErrors((e) => ({ ...e, [key]: undefined }))
+    setMediaUploading(key)
+    try {
+      const urls = await Promise.all(Array.from(files).map((file) => provider.uploadImage(file, name)))
+      mutateMedia(key, (arr) => [
+        ...arr,
+        ...urls.map((url) => ({ id: genMediaId(), type: 'photo' as const, image: url, caption: '' })),
+      ])
+    } catch (err) {
+      setErrors((e) => ({ ...e, [key]: (err as Error).message || 'העלאת המדיה נכשלה' }))
+    } finally {
+      setMediaUploading(null)
+    }
+  }
+
+  const replaceMediaImage = async (key: string, i: number, file?: File) => {
+    if (!file) return
+    setErrors((e) => ({ ...e, [key]: undefined }))
+    setMediaUploading(key)
+    const previous = getMedia(key)[i]?.image
+    try {
+      const url = await provider.uploadImage(file, name)
+      updateMediaEntry(key, i, { image: url })
+      if (previous) provider.deleteImage?.(previous)
+    } catch (err) {
+      setErrors((e) => ({ ...e, [key]: (err as Error).message || 'העלאת התמונה נכשלה' }))
+    } finally {
+      setMediaUploading(null)
+    }
+  }
+
+  /** Fields that are actually shown (and therefore validated) for the current form. */
+  const visibleFields = schema.fields.filter((f) => !f.showIf || f.showIf(form))
+
   const validate = () => {
     const e: Record<string, string | undefined> = {}
-    schema.fields.forEach((f) => {
+    visibleFields.forEach((f) => {
       if (f.required && !String(form[f.key] ?? '').trim()) e[f.key] = 'שדה חובה'
     })
     setErrors(e)
@@ -98,7 +167,7 @@ export default function CollectionEditor() {
         </h1>
 
         <div className="space-y-4">
-          {schema.fields.map((f) => (
+          {visibleFields.map((f) => (
             <div key={f.key}>
               <label className="mb-1 block text-sm font-semibold text-ink">
                 {f.label}
@@ -159,6 +228,130 @@ export default function CollectionEditor() {
                   </div>
                 </div>
               )}
+              {f.type === 'media' && (
+                <div className="space-y-3">
+                  {getMedia(f.key).length === 0 && (
+                    <p className="rounded-xl border border-dashed border-ink/15 bg-cream px-4 py-6 text-center text-sm text-ink-muted">
+                      אין עדיין מדיה באלבום. הוסיפו תמונות או וידאו.
+                    </p>
+                  )}
+
+                  {getMedia(f.key).map((m, i) => (
+                    <div key={m.id || i} className="rounded-xl border border-ink/10 bg-white p-3">
+                      <div className="flex items-start gap-3">
+                        {/* reorder */}
+                        <div className="flex flex-col pt-1">
+                          <button
+                            type="button"
+                            onClick={() => moveMediaEntry(f.key, i, -1)}
+                            disabled={i === 0}
+                            className="px-1 text-ink-muted hover:text-gold disabled:opacity-30"
+                            aria-label="הזז מעלה"
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveMediaEntry(f.key, i, 1)}
+                            disabled={i === getMedia(f.key).length - 1}
+                            className="px-1 text-ink-muted hover:text-gold disabled:opacity-30"
+                            aria-label="הזז מטה"
+                          >
+                            ▼
+                          </button>
+                        </div>
+
+                        {/* thumbnail */}
+                        {m.type === 'photo' && m.image ? (
+                          <img src={m.image} alt="" className="h-16 w-16 shrink-0 rounded-lg object-cover ring-1 ring-ink/10" />
+                        ) : (
+                          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-cream text-[10px] text-ink-muted ring-1 ring-ink/10">
+                            {m.type === 'video' ? 'וידאו' : 'אין תמונה'}
+                          </div>
+                        )}
+
+                        <div className="min-w-0 flex-1 space-y-2">
+                          {/* type toggle */}
+                          <div className="inline-flex rounded-lg bg-cream p-0.5 text-xs font-semibold">
+                            {(['photo', 'video'] as const).map((t) => (
+                              <button
+                                key={t}
+                                type="button"
+                                onClick={() => updateMediaEntry(f.key, i, { type: t })}
+                                className={`rounded-md px-3 py-1 ${
+                                  m.type === t ? 'bg-white text-gold-hover shadow-card' : 'text-ink-muted'
+                                }`}
+                              >
+                                {t === 'photo' ? 'תמונה' : 'וידאו'}
+                              </button>
+                            ))}
+                          </div>
+
+                          {m.type === 'video' ? (
+                            <input
+                              type="text"
+                              dir="ltr"
+                              value={m.videoUrl ?? ''}
+                              onChange={(e) => updateMediaEntry(f.key, i, { videoUrl: e.target.value })}
+                              placeholder="https://www.youtube.com/embed/…"
+                              className={`${fieldCls} !py-2 text-sm`}
+                            />
+                          ) : (
+                            <label className={`btn-outline inline-flex cursor-pointer !py-1.5 text-xs ${mediaUploading === f.key ? 'pointer-events-none opacity-60' : ''}`}>
+                              {mediaUploading === f.key ? 'מעלה…' : m.image ? 'החלפת תמונה' : 'העלאת תמונה'}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                disabled={mediaUploading === f.key}
+                                onChange={(e) => replaceMediaImage(f.key, i, e.target.files?.[0])}
+                              />
+                            </label>
+                          )}
+
+                          <input
+                            type="text"
+                            value={m.caption ?? ''}
+                            onChange={(e) => updateMediaEntry(f.key, i, { caption: e.target.value })}
+                            placeholder="כיתוב (רשות)"
+                            className={`${fieldCls} !py-2 text-sm`}
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => removeMediaEntry(f.key, i)}
+                          className="shrink-0 rounded-lg bg-red-50 px-2.5 py-1.5 text-sm font-medium text-red-600 hover:bg-red-100"
+                        >
+                          מחיקה
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* add controls */}
+                  <div className="flex flex-wrap gap-2">
+                    <label className={`btn-primary cursor-pointer !py-2 !px-4 text-sm ${mediaUploading === f.key ? 'pointer-events-none opacity-60' : ''}`}>
+                      {mediaUploading === f.key ? 'מעלה…' : 'העלאת תמונות'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        disabled={mediaUploading === f.key}
+                        onChange={(e) => uploadMediaFiles(f.key, e.target.files)}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => addMediaEntry(f.key, { type: 'video' })}
+                      className="rounded-xl bg-ink/5 px-4 py-2 text-sm font-medium hover:bg-ink/10"
+                    >
+                      + הוספת וידאו
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {errors[f.key] && <p className="mt-1 text-sm text-red-600">{errors[f.key]}</p>}
             </div>
@@ -166,7 +359,7 @@ export default function CollectionEditor() {
         </div>
 
         <div className="mt-6 flex gap-2">
-          <button onClick={save} disabled={busy || uploading !== null} className="btn-primary disabled:opacity-70">
+          <button onClick={save} disabled={busy || uploading !== null || mediaUploading !== null} className="btn-primary disabled:opacity-70">
             {busy ? 'שומר…' : 'שמירה'}
           </button>
           <button onClick={() => navigate(backTo)} className="btn-outline">

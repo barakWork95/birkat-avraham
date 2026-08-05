@@ -10,7 +10,14 @@
  * ------------------------------------------------------------------
  */
 
-export type FieldType = 'text' | 'textarea' | 'number' | 'boolean' | 'select' | 'image'
+export type FieldType =
+  | 'text'
+  | 'textarea'
+  | 'number'
+  | 'boolean'
+  | 'select'
+  | 'image'
+  | 'media'
 
 export interface FieldSchema {
   key: string
@@ -18,6 +25,8 @@ export interface FieldSchema {
   type: FieldType
   required?: boolean
   options?: string[]
+  /** Optional: only render (and validate) this field when the predicate passes. */
+  showIf?: (item: any) => boolean
 }
 
 export interface CollectionConfig {
@@ -77,18 +86,36 @@ export const COLLECTIONS: Record<string, CollectionConfig> = {
         type: 'select',
         options: ['שיעורים', 'כולל', 'חסד', 'אירועים', 'נוער'],
       },
-      { key: 'type', label: 'סוג', type: 'select', options: ['photo', 'video'] },
-      { key: 'image', label: 'תמונה', type: 'image' },
-      { key: 'videoUrl', label: 'קישור וידאו (למדיה מסוג וידאו)', type: 'text' },
+      { key: 'type', label: 'סוג', type: 'select', options: ['photo', 'video', 'album'] },
+      {
+        key: 'image',
+        label: 'תמונה (או תמונת שער לאלבום)',
+        type: 'image',
+        showIf: (i) => i.type !== 'video',
+      },
+      {
+        key: 'videoUrl',
+        label: 'קישור וידאו',
+        type: 'text',
+        showIf: (i) => i.type === 'video',
+      },
+      {
+        key: 'media',
+        label: 'מדיה באלבום',
+        type: 'media',
+        showIf: (i) => i.type === 'album',
+      },
     ],
     // Photos are uploaded to Storage (or inlined as data URLs in local mode).
-    // Items with no image fall back to the gradient placeholder.
+    // Items with no image fall back to the gradient placeholder. Albums carry a
+    // `media` array (photos uploaded to Storage + videos by URL).
     defaults: {
       title: '',
       category: 'שיעורים',
       type: 'photo',
       image: '',
       videoUrl: '',
+      media: [],
       gradient: 'linear-gradient(135deg,#1A1110,#B8860B)',
     },
   },

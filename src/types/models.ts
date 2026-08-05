@@ -18,6 +18,15 @@ export type Singleton = Record<string, unknown>
 
 export type MediaType = 'photo' | 'video'
 
+/** One item inside a gallery album (a photo uploaded to Storage, or a video URL). */
+export interface MediaEntry {
+  id: string
+  type: MediaType
+  image?: string
+  videoUrl?: string
+  caption?: string
+}
+
 export interface Contact extends Entity {
   name: string
   title: string
@@ -36,10 +45,14 @@ export interface EventItem extends Entity {
 export interface GalleryItem extends Entity {
   title: string
   category: string
-  type: MediaType
+  /** 'photo'/'video' = a single item; 'album' = a set of `media` entries. */
+  type: MediaType | 'album'
+  /** Single photo, or the album cover (falls back to the first media entry). */
   image?: string
   videoUrl?: string
   gradient?: string
+  /** Present when type === 'album'. */
+  media?: MediaEntry[]
 }
 
 export interface DonationTier extends Entity {
