@@ -1,6 +1,5 @@
 import { useEvents } from '../hooks/useEvents'
 import SectionTitle from './ui/SectionTitle'
-import Skeleton from './ui/Skeleton'
 import { CalendarIcon } from './ui/Icons'
 import { useSectionText } from '../hooks/useSectionText'
 
@@ -8,6 +7,10 @@ import { useSectionText } from '../hooks/useSectionText'
  * Events — upcoming community events. Reads from the data provider
  * (useEvents), so the gabbaim can add/edit events from the admin panel and
  * they appear here automatically, with past events dropping off by date.
+ *
+ * Like the notice board, the section hides itself when there is nothing to
+ * show — note that "nothing" here means no UPCOMING events, so a board of
+ * events that have all passed removes the section on its own.
  */
 function formatGregorian(date: string | undefined): string | null {
   const d = new Date(date ?? '')
@@ -21,56 +24,45 @@ function formatGregorian(date: string | undefined): string | null {
 
 export default function Events() {
   const text = useSectionText('events')
-  const { events, loading } = useEvents()
+  const { events } = useEvents()
+
+  // Nothing coming up → no section (also covers the cold-load window).
+  if (events.length === 0) return null
 
   return (
     <section id="events" className="scroll-mt-28 py-16 sm:py-24">
       <div className="section">
         <SectionTitle eyebrow={text.eyebrow} title={text.title} subtitle={text.subtitle} />
 
-        {loading && events.length === 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 w-full !rounded-2xl" />
-            ))}
-          </div>
-        ) : events.length === 0 ? (
-          <div className="mx-auto max-w-md rounded-2xl border border-dashed border-gold/30 bg-white/50 px-6 py-12 text-center">
-            <CalendarIcon className="mx-auto mb-3 h-8 w-8 text-gold" />
-            <p className="font-semibold text-ink">אין אירועים קרובים כרגע</p>
-            <p className="mt-1 text-sm text-ink-muted">עקבו אחרינו — אירועים חדשים יתפרסמו כאן בקרוב.</p>
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {events.map((ev, i) => {
-              const gregorian = formatGregorian(ev.date)
-              return (
-                <article
-                  key={ev.id || i}
-                  className="card animate-fade-up flex gap-4 p-5 hover:-translate-y-1 hover:shadow-card-hover"
-                  style={{ animationDelay: `${i * 0.06}s` }}
-                >
-                  {/* Date block */}
-                  <div className="flex shrink-0 flex-col items-center justify-center rounded-xl bg-ink px-3 py-3 text-center text-gold-light">
-                    <CalendarIcon className="mb-1 h-4 w-4 opacity-70" />
-                    {ev.hebrewDate && (
-                      <span className="whitespace-nowrap font-heading text-sm font-bold leading-tight">
-                        {ev.hebrewDate}
-                      </span>
-                    )}
-                  </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {events.map((ev, i) => {
+            const gregorian = formatGregorian(ev.date)
+            return (
+              <article
+                key={ev.id || i}
+                className="card animate-fade-up flex gap-4 p-5 hover:-translate-y-1 hover:shadow-card-hover"
+                style={{ animationDelay: `${i * 0.06}s` }}
+              >
+                {/* Date block */}
+                <div className="flex shrink-0 flex-col items-center justify-center rounded-xl bg-ink px-3 py-3 text-center text-gold-light">
+                  <CalendarIcon className="mb-1 h-4 w-4 opacity-70" />
+                  {ev.hebrewDate && (
+                    <span className="whitespace-nowrap font-heading text-sm font-bold leading-tight">
+                      {ev.hebrewDate}
+                    </span>
+                  )}
+                </div>
 
-                  {/* Details */}
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-heading text-lg font-bold text-ink">{ev.title}</h3>
-                    {gregorian && <p className="mt-0.5 text-xs font-medium text-gold-hover">{gregorian}</p>}
-                    {ev.desc && <p className="mt-2 text-sm leading-relaxed text-ink-muted">{ev.desc}</p>}
-                  </div>
-                </article>
-              )
-            })}
-          </div>
-        )}
+                {/* Details */}
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-heading text-lg font-bold text-ink">{ev.title}</h3>
+                  {gregorian && <p className="mt-0.5 text-xs font-medium text-gold-hover">{gregorian}</p>}
+                  {ev.desc && <p className="mt-2 text-sm leading-relaxed text-ink-muted">{ev.desc}</p>}
+                </div>
+              </article>
+            )
+          })}
+        </div>
       </div>
     </section>
   )

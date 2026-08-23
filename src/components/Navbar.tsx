@@ -1,16 +1,23 @@
 import { useEffect, useState } from 'react'
 import { MenuIcon, CloseIcon, HeartIcon } from './ui/Icons'
 import { useInfo } from '../hooks/useInfo'
-import { useCollection } from '../hooks/useCollection'
+import { useOptionalSections, type OptionalSection } from '../hooks/useOptionalSections'
 import { useSectionText } from '../hooks/useSectionText'
 
-const NAV_LINKS = [
+/**
+ * Site nav, in page order. Entries carrying `optional` belong to sections that
+ * hide themselves when their collection is empty — those links appear only
+ * while their section is actually on the page.
+ */
+const NAV_LINKS: { href: string; label: string; optional?: OptionalSection }[] = [
   { href: '#hero', label: 'בית' },
   { href: '#schedule', label: 'לוח זמנים' },
+  { href: '#noticeboard', label: 'לוח מודעות', optional: 'noticeboard' },
   { href: '#bulletin', label: 'העלון' },
+  { href: '#shiurim', label: 'שיעורים', optional: 'shiurim' },
   { href: '#leadership', label: 'אנשי קשר' },
   { href: '#gallery', label: 'גלריה' },
-  { href: '#events', label: 'אירועים' },
+  { href: '#events', label: 'אירועים', optional: 'events' },
   { href: '#location', label: 'צור קשר' },
 ]
 
@@ -24,22 +31,12 @@ interface NavbarProps {
  */
 export default function Navbar({ onDonate }: NavbarProps) {
   const institutionInfo = useInfo()
-  // The notice board only exists on the page while it has notices, so its link
-  // (right after "לוח זמנים") appears only then — never a link to nothing.
-  const { items: notices } = useCollection('noticeboard')
-  const { items: shiurim } = useCollection('shiurim')
+  const visible = useOptionalSections()
   const noticeboard = useSectionText('noticeboard')
-  // Each optional section contributes its link only while it has content, so
-  // the nav never points at a section that isn't on the page.
-  const navLinks = [
-    ...NAV_LINKS.slice(0, 2),
-    ...(notices.length > 0
-      ? [{ href: '#noticeboard', label: noticeboard.title || 'לוח מודעות' }]
-      : []),
-    ...NAV_LINKS.slice(2, 3),
-    ...(shiurim.length > 0 ? [{ href: '#shiurim', label: 'שיעורים' }] : []),
-    ...NAV_LINKS.slice(3),
-  ]
+  const navLinks = NAV_LINKS.filter((l) => !l.optional || visible[l.optional]).map((l) =>
+    // The board's link follows whatever the gabbai titled the section.
+    l.optional === 'noticeboard' ? { ...l, label: noticeboard.title || l.label } : l,
+  )
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
 

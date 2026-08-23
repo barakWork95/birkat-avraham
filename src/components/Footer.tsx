@@ -1,6 +1,6 @@
 import { PhoneIcon, WhatsAppIcon, PinIcon, HeartIcon, MailIcon } from './ui/Icons'
 import { useInfo } from '../hooks/useInfo'
-import { useCollection } from '../hooks/useCollection'
+import { useOptionalSections } from '../hooks/useOptionalSections'
 import { useSectionText } from '../hooks/useSectionText'
 
 interface FooterProps {
@@ -13,18 +13,17 @@ interface FooterProps {
 export default function Footer({ onDonate }: FooterProps) {
   const info = useInfo()
   const year = new Date().getFullYear()
-  // Same rule as the navbar: link the notice board only while it has notices.
-  const { items: notices } = useCollection('noticeboard')
-  const { items: shiurim } = useCollection('shiurim')
+  // Same rule as the navbar: link a section only while it is on the page.
+  const visible = useOptionalSections()
   const noticeboard = useSectionText('noticeboard')
 
   const links = [
     { href: '#schedule', label: 'לוח זמנים' },
-    ...(notices.length > 0
+    ...(visible.noticeboard
       ? [{ href: '#noticeboard', label: noticeboard.title || 'לוח מודעות' }]
       : []),
     { href: '#bulletin', label: 'העלון השבועי' },
-    ...(shiurim.length > 0 ? [{ href: '#shiurim', label: 'שיעורי הרב' }] : []),
+    ...(visible.shiurim ? [{ href: '#shiurim', label: 'שיעורי הרב' }] : []),
     { href: '#leadership', label: 'אנשי קשר' },
     { href: '#gallery', label: 'גלריה' },
     { href: '#donate', label: 'תרומה' },
