@@ -66,6 +66,15 @@ export const SECTION_TEXTS: SectionTextConfig[] = [
     },
   },
   {
+    key: 'shiurim',
+    label: 'שיעורי הרב (וידאו)',
+    defaults: {
+      eyebrow: 'צפייה ולימוד',
+      title: 'שיעורי הרב',
+      subtitle: 'שיעורים מפי הרה"ג איתן אברהם שליט״א — זוגיות וחינוך, הלכה, פרשת שבוע וחיזוק.',
+    },
+  },
+  {
     key: 'leadership',
     label: 'אנשי קשר',
     defaults: {

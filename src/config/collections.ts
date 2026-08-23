@@ -44,6 +44,9 @@ export interface SingletonConfig {
   seedKey: string
 }
 
+/** Topics for the video shiurim — also the filter chips on the public section. */
+export const SHIUR_CATEGORIES = ['זוגיות וחינוך', 'הלכה ושו"ת', 'פרשת השבוע', 'נוער וחיזוק']
+
 export const COLLECTIONS: Record<string, CollectionConfig> = {
   leadership: {
     label: 'אנשי קשר',
@@ -197,6 +200,28 @@ export const COLLECTIONS: Record<string, CollectionConfig> = {
       { key: 'location', label: 'מיקום', type: 'text' },
     ],
     defaults: { name: '', time: '', sub: '', location: 'בית המדרש' },
+  },
+
+  shiurim: {
+    label: 'שיעורי הרב (וידאו)',
+    seedKey: 'shiurimData',
+    itemTitle: (i) => i.title,
+    itemSubtitle: (i) => [i.category, i.date].filter(Boolean).join(' · '),
+    fields: [
+      { key: 'title', label: 'שם השיעור', type: 'text', required: true },
+      { key: 'videoUrl', label: 'קישור ליוטיוב', type: 'text', required: true },
+      {
+        key: 'category',
+        label: 'נושא',
+        type: 'select',
+        options: SHIUR_CATEGORIES,
+      },
+      { key: 'date', label: 'תאריך / תקופה', type: 'text' },
+      { key: 'image', label: 'תמונת שער (רשות)', type: 'image' },
+    ],
+    // Any YouTube link form works — it is normalised on playback, and the
+    // tile falls back to YouTube's own poster frame when `image` is empty.
+    defaults: { title: '', videoUrl: '', category: SHIUR_CATEGORIES[0], date: '', image: '' },
   },
 
   noticeboard: {

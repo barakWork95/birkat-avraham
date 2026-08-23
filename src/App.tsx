@@ -6,6 +6,7 @@ import DonationSection from './components/DonationSection'
 import Schedule from './components/Schedule'
 import Noticeboard from './components/Noticeboard'
 import WeeklyBulletin from './components/WeeklyBulletin'
+import Shiurim from './components/Shiurim'
 import Leadership from './components/Leadership'
 import Gallery from './components/Gallery'
 import Events from './components/Events'
@@ -71,6 +72,7 @@ export default function App() {
         <Schedule />
         <Noticeboard />
         <WeeklyBulletin />
+        <Shiurim />
         <Leadership />
         <Gallery />
         <Events />

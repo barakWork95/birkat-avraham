@@ -21,6 +21,7 @@ import type {
   ImpactSlide,
   InstitutionInfo,
   Notice,
+  Shiur,
   ScheduleItem,
   Zmanim,
 } from '../types/models'
@@ -264,3 +265,28 @@ export const noticeboardData = [] satisfies Notice[]
  * /admin/sections; the site falls back to those defaults for anything unset.
  */
 export const sectionTexts = SECTION_TEXT_DEFAULTS
+
+/**
+ * Video shiurim of the rav (שיעורי הרב) — imported from the gabbai's list,
+ * newest first. `videoUrl` accepts any YouTube link form; tiles fall back to
+ * YouTube's own poster frame, so no images need uploading.
+ */
+export const shiurimData = [
+  { id: 'sh01', title: 'שיעור זוגיות עם מו"ר הרב איתן אברהם שליט"א - ז\' תמוז תשפ"ו', videoUrl: 'https://www.youtube.com/embed/D6i3-FO-_gg', category: 'זוגיות וחינוך', date: 'יולי 2026', image: '' },
+  { id: 'sh02', title: 'שיעור לנוער חובה צפייה!!! (07/07/26)', videoUrl: 'https://www.youtube.com/embed/hRXR3rgNJMk', category: 'נוער וחיזוק', date: 'יולי 2026', image: '' },
+  { id: 'sh03', title: 'שיעור בזוגיות (טו\' סיוון תשפ"ו)', videoUrl: 'https://www.youtube.com/embed/CtexafWEkpU', category: 'זוגיות וחינוך', date: 'יוני 2026', image: '' },
+  { id: 'sh04', title: 'שיעור בזוגיות - שידור חי', videoUrl: 'https://www.youtube.com/embed/_lEvOBBw2KM', category: 'זוגיות וחינוך', date: 'מאי 2026', image: '' },
+  { id: 'sh05', title: 'שיעור זוגיות מפי מו"ר הרב איתן אברהם שליט"א', videoUrl: 'https://www.youtube.com/embed/Zi4rbduIHug', category: 'זוגיות וחינוך', date: 'מאי 2026', image: '' },
+  { id: 'sh06', title: 'שיעור לנוער במיוחד מרתק - חייב צפייה!!', videoUrl: 'https://www.youtube.com/embed/wwSqjBT0uTs', category: 'נוער וחיזוק', date: 'מאי 2026', image: '' },
+  { id: 'sh07', title: 'שיעור זוגיות מפי מו"ר הרב איתן אברהם שליט"א - כא\' שבט', videoUrl: 'https://www.youtube.com/embed/z7RNVtpaf8g', category: 'זוגיות וחינוך', date: 'פברואר 2026', image: '' },
+  { id: 'sh08', title: 'שיעור זוגיות מפי מו"ר הרב איתן אברהם שליט"א', videoUrl: 'https://www.youtube.com/embed/HrdQESrNeXU', category: 'זוגיות וחינוך', date: 'פברואר 2026', image: '' },
+  { id: 'sh09', title: 'כולל "שערי הוד והדר" יבנה: השיעור השבועי פרשת וארא (כח\' טבת תשפ"ו)', videoUrl: 'https://www.youtube.com/embed/4ttN4IHbUfk', category: 'פרשת השבוע', date: 'פברואר 2026', image: '' },
+  { id: 'sh10', title: 'שיעור זוגיות מפי מו"ר הרב איתן אברהם שליט"א - טו\' בטבת', videoUrl: 'https://www.youtube.com/embed/cMuA-5ZnkNM', category: 'זוגיות וחינוך', date: 'ינואר 2026', image: '' },
+  { id: 'sh11', title: 'הלכה יומית מפי מו"ר הרב איתן אברהם שליט"א: מלאכת זורע סימן של"ו (ו\' כסלו)', videoUrl: 'https://www.youtube.com/embed/uUVyZYCS9wU', category: 'הלכה ושו"ת', date: 'נובמבר 2025', image: '' },
+  { id: 'sh12', title: 'ממצוות לא מפסידים!!!', videoUrl: 'https://www.youtube.com/embed/43YBbIsHLHk', category: 'נוער וחיזוק', date: 'מאי 2025', image: '' },
+  { id: 'sh13', title: 'שיעור בזוגיות וחינוך הילדים מפי הרב איתן אברהם שליט"א (כ"א בטבת)', videoUrl: 'https://www.youtube.com/embed/MhuLh_cvv5I', category: 'זוגיות וחינוך', date: 'ינואר 2024', image: '' },
+  { id: 'sh14', title: 'שיעור בזוגיות וחינוך הילדים מפי הרב איתן אברהם שליט"א', videoUrl: 'https://www.youtube.com/embed/DgyxkIvBPHQ', category: 'זוגיות וחינוך', date: 'יוני 2023', image: '' },
+  { id: 'sh15', title: 'הרב איתן אברהם | זוגיות נכונה | שיעור מלא', videoUrl: 'https://www.youtube.com/embed/CxQ656em9gY', category: 'זוגיות וחינוך', date: 'מאי 2022', image: '' },
+  { id: 'sh16', title: 'הרב איתן אברהם | איך אתה במידת החסד? בבית!', videoUrl: 'https://www.youtube.com/embed/NyKXkK7R0Zs', category: 'זוגיות וחינוך', date: 'אפריל 2022', image: '' },
+  { id: 'sh17', title: 'הרב איתן אברהם | האם אתה בשמחה כשהשבת מגיעה? סרטון קצר שחובה לצפות בו!', videoUrl: 'https://www.youtube.com/embed/CgrHMaz3se0', category: 'נוער וחיזוק', date: 'אפריל 2022', image: '' },
+] satisfies Shiur[]

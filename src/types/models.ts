@@ -89,6 +89,19 @@ export interface Bulletin extends Entity {
   cover?: string
 }
 
+export interface Shiur extends Entity {
+  /** Video title as it appears on the site. */
+  title: string
+  /** Any YouTube link — normalised to an embed URL when played. */
+  videoUrl: string
+  /** Topic, used for the section's filter chips. */
+  category?: string
+  /** Free-text period, e.g. "אב תשפ״ו" or "אוגוסט 2026". */
+  date?: string
+  /** Optional custom cover; YouTube's own frame is used when empty. */
+  image?: string
+}
+
 export interface Notice extends Entity {
   /** Short title — used as the image alt text and in the admin list. */
   title: string

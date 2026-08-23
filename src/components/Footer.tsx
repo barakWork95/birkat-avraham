@@ -15,6 +15,7 @@ export default function Footer({ onDonate }: FooterProps) {
   const year = new Date().getFullYear()
   // Same rule as the navbar: link the notice board only while it has notices.
   const { items: notices } = useCollection('noticeboard')
+  const { items: shiurim } = useCollection('shiurim')
   const noticeboard = useSectionText('noticeboard')
 
   const links = [
@@ -23,6 +24,7 @@ export default function Footer({ onDonate }: FooterProps) {
       ? [{ href: '#noticeboard', label: noticeboard.title || 'לוח מודעות' }]
       : []),
     { href: '#bulletin', label: 'העלון השבועי' },
+    ...(shiurim.length > 0 ? [{ href: '#shiurim', label: 'שיעורי הרב' }] : []),
     { href: '#leadership', label: 'אנשי קשר' },
     { href: '#gallery', label: 'גלריה' },
     { href: '#donate', label: 'תרומה' },
