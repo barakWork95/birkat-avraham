@@ -4,6 +4,7 @@ import ImpactCarousel from './ImpactCarousel'
 import DonationWidget from './DonationWidget'
 import { useInfo } from '../hooks/useInfo'
 import type { BankTransfer } from '../types/models'
+import { useSectionText } from '../hooks/useSectionText'
 
 /**
  * DonationSection — pairs the impact carousel ("see where funds go")
@@ -11,16 +12,13 @@ import type { BankTransfer } from '../types/models'
  * `ref` lets CTAs elsewhere scroll here.
  */
 const DonationSection = forwardRef<HTMLElement>(function DonationSection(_props, ref) {
+  const text = useSectionText('donation')
   const bank: BankTransfer = useInfo().bankTransfer || {}
 
   return (
     <section id="donate" ref={ref} className="scroll-mt-28 bg-white/60 py-16 sm:py-24">
       <div className="section">
-        <SectionTitle
-          eyebrow="שותפות במפעל"
-          title="התרומה שלכם — במעשה"
-          subtitle="כל תרומה מיתרגמת ישירות לתורה, לתפילה ולחסד. הביטו היכן הכספים פועלים, ובחרו כיצד להשתתף."
-        />
+        <SectionTitle eyebrow={text.eyebrow} title={text.title} subtitle={text.subtitle} />
 
         <div className="grid items-start gap-8 lg:grid-cols-2">
           <ImpactCarousel />

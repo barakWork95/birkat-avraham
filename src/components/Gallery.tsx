@@ -4,6 +4,7 @@ import Skeleton from './ui/Skeleton'
 import { PlayIcon, StackIcon, CloseIcon, ChevronLeft, ChevronRight } from './ui/Icons'
 import { useCollection } from '../hooks/useCollection'
 import type { GalleryItem } from '../types/models'
+import { useSectionText } from '../hooks/useSectionText'
 
 const CATEGORIES = ['הכל', 'שיעורים', 'כולל', 'חסד', 'אירועים', 'נוער']
 
@@ -17,6 +18,7 @@ const coverOf = (g: GalleryItem): string =>
  * lightbox). Reads from the data provider so admin edits reflect live.
  */
 export default function Gallery() {
+  const text = useSectionText('gallery')
   const { items: galleryData, loading } = useCollection<GalleryItem>('gallery')
   const [filter, setFilter] = useState('הכל')
   const [lightbox, setLightbox] = useState<number | null>(null) // index within `items`
@@ -72,11 +74,7 @@ export default function Gallery() {
   return (
     <section id="gallery" className="scroll-mt-28 py-16 sm:py-24">
       <div className="section">
-        <SectionTitle
-          eyebrow="גלריה"
-          title="תמונות וסרטונים"
-          subtitle="רגעים מבית המדרש, מהאירועים ומפעילות החסד."
-        />
+        <SectionTitle eyebrow={text.eyebrow} title={text.title} subtitle={text.subtitle} />
 
         {/* Filters */}
         <div className="mb-8 flex flex-wrap justify-center gap-2">

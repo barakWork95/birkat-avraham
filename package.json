@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:local": "VITE_DATA_PROVIDER=local vite --port 5174 --strictPort",
     "build": "vite build",
     "build:staging": "vite build --mode staging",
     "preview": "vite preview",

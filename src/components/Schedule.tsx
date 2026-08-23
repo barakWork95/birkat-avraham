@@ -2,22 +2,20 @@ import { useSchedule } from '../hooks/useSchedule'
 import SectionTitle from './ui/SectionTitle'
 import Skeleton from './ui/Skeleton'
 import { ClockIcon, PinIcon } from './ui/Icons'
+import { useSectionText } from '../hooks/useSectionText'
 
 /**
  * Schedule — tabbed daily schedule (prayers / shiurim / kollel).
  * Data + active tab come from useSchedule().
  */
 export default function Schedule() {
+  const text = useSectionText('schedule')
   const { tabs, activeTab, setActiveTab, items, loading } = useSchedule()
 
   return (
     <section id="schedule" className="scroll-mt-28 py-16 sm:py-24">
       <div className="section">
-        <SectionTitle
-          eyebrow='לו"ז שבועי'
-          title="תפילות, שיעורים וכולל ערב"
-          subtitle="זמני התפילות, שיעורי הרב איתן אברהם שליט״א וסדרי הכולל בבית המדרש."
-        />
+        <SectionTitle eyebrow={text.eyebrow} title={text.title} subtitle={text.subtitle} />
 
         {/* Tabs */}
         <div className="mb-8 flex justify-center">

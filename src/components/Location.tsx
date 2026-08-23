@@ -2,6 +2,7 @@ import type { ComponentType, ReactNode } from 'react'
 import SectionTitle from './ui/SectionTitle'
 import { PinIcon, PhoneIcon, WhatsAppIcon, MailIcon } from './ui/Icons'
 import { useInfo } from '../hooks/useInfo'
+import { useSectionText } from '../hooks/useSectionText'
 
 /**
  * Location — address, published contact numbers, WhatsApp shiurim group,
@@ -9,6 +10,7 @@ import { useInfo } from '../hooks/useInfo'
  * `mapQuery` so there's a single source of truth for the address.
  */
 export default function Location() {
+  const text = useSectionText('location')
   const info = useInfo()
   const q = encodeURIComponent(info.mapQuery || '')
   const wazeUrl = `https://waze.com/ul?q=${q}`
@@ -32,11 +34,7 @@ export default function Location() {
   return (
     <section id="location" className="scroll-mt-28 py-16 sm:py-24">
       <div className="section">
-        <SectionTitle
-          eyebrow="מיקום ופרטים"
-          title="בואו לבקר"
-          subtitle="דלתות בית המדרש פתוחות. נשמח לראותכם."
-        />
+        <SectionTitle eyebrow={text.eyebrow} title={text.title} subtitle={text.subtitle} />
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Details */}

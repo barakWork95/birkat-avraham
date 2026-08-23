@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { MenuIcon, CloseIcon, HeartIcon } from './ui/Icons'
 import { useInfo } from '../hooks/useInfo'
+import { useCollection } from '../hooks/useCollection'
+import { useSectionText } from '../hooks/useSectionText'
 
 const NAV_LINKS = [
   { href: '#hero', label: 'בית' },
@@ -22,6 +24,18 @@ interface NavbarProps {
  */
 export default function Navbar({ onDonate }: NavbarProps) {
   const institutionInfo = useInfo()
+  // The notice board only exists on the page while it has notices, so its link
+  // (right after "לוח זמנים") appears only then — never a link to nothing.
+  const { items: notices } = useCollection('noticeboard')
+  const noticeboard = useSectionText('noticeboard')
+  const navLinks =
+    notices.length > 0
+      ? [
+          ...NAV_LINKS.slice(0, 2),
+          { href: '#noticeboard', label: noticeboard.title || 'לוח מודעות' },
+          ...NAV_LINKS.slice(2),
+        ]
+      : NAV_LINKS
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -66,7 +80,7 @@ export default function Navbar({ onDonate }: NavbarProps) {
 
         {/* Desktop nav */}
         <ul className="hidden items-center gap-1 lg:flex">
-          {NAV_LINKS.map((l) => (
+          {navLinks.map((l) => (
             <li key={l.href}>
               <a
                 href={l.href}
@@ -129,7 +143,7 @@ export default function Navbar({ onDonate }: NavbarProps) {
             </button>
           </div>
           <ul className="flex flex-col gap-1 p-5">
-            {NAV_LINKS.map((l) => (
+            {navLinks.map((l) => (
               <li key={l.href}>
                 <a
                   href={l.href}

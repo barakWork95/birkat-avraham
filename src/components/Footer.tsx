@@ -1,5 +1,7 @@
 import { PhoneIcon, WhatsAppIcon, PinIcon, HeartIcon, MailIcon } from './ui/Icons'
 import { useInfo } from '../hooks/useInfo'
+import { useCollection } from '../hooks/useCollection'
+import { useSectionText } from '../hooks/useSectionText'
 
 interface FooterProps {
   onDonate: () => void
@@ -11,9 +13,15 @@ interface FooterProps {
 export default function Footer({ onDonate }: FooterProps) {
   const info = useInfo()
   const year = new Date().getFullYear()
+  // Same rule as the navbar: link the notice board only while it has notices.
+  const { items: notices } = useCollection('noticeboard')
+  const noticeboard = useSectionText('noticeboard')
 
   const links = [
     { href: '#schedule', label: 'לוח זמנים' },
+    ...(notices.length > 0
+      ? [{ href: '#noticeboard', label: noticeboard.title || 'לוח מודעות' }]
+      : []),
     { href: '#bulletin', label: 'העלון השבועי' },
     { href: '#leadership', label: 'אנשי קשר' },
     { href: '#gallery', label: 'גלריה' },

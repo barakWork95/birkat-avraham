@@ -4,6 +4,7 @@ import Skeleton from './ui/Skeleton'
 import { BookIcon, DownloadIcon, ChevronLeft, CloseIcon } from './ui/Icons'
 import { useCollection } from '../hooks/useCollection'
 import type { Bulletin } from '../types/models'
+import { useSectionText } from '../hooks/useSectionText'
 
 const formatDate = (d?: string): string => {
   if (!d) return ''
@@ -23,6 +24,7 @@ const formatDate = (d?: string): string => {
  * provider so gabbaim publish a new PDF each week from the admin.
  */
 export default function WeeklyBulletin() {
+  const text = useSectionText('bulletin')
   const { items, loading } = useCollection<Bulletin>('bulletins')
   const [reader, setReader] = useState<Bulletin | null>(null)
 
@@ -60,11 +62,7 @@ export default function WeeklyBulletin() {
   return (
     <section id="bulletin" className="scroll-mt-28 bg-white/60 py-16 sm:py-24">
       <div className="section">
-        <SectionTitle
-          eyebrow="פרסום שבועי"
-          title="העלון השבועי"
-          subtitle="דבר תורה, הלכה וחדשות הקהילה — מדי שבוע מבית מוסדות ״ברכת אברהם״."
-        />
+        <SectionTitle eyebrow={text.eyebrow} title={text.title} subtitle={text.subtitle} />
 
         {loading && items.length === 0 ? (
           <div className="mx-auto max-w-3xl">

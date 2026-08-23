@@ -199,6 +199,22 @@ export const COLLECTIONS: Record<string, CollectionConfig> = {
     defaults: { name: '', time: '', sub: '', location: 'בית המדרש' },
   },
 
+  noticeboard: {
+    label: 'לוח מודעות',
+    seedKey: 'noticeboardData',
+    itemTitle: (i) => i.title || 'מודעה',
+    itemSubtitle: (i) => i.caption,
+    fields: [
+      { key: 'title', label: 'כותרת המודעה', type: 'text', required: true },
+      { key: 'image', label: 'תמונת המודעה', type: 'image', required: true },
+      { key: 'caption', label: 'כיתוב מתחת לתמונה (רשות)', type: 'text' },
+      { key: 'link', label: 'קישור בלחיצה (רשות)', type: 'text' },
+    ],
+    // The section hides itself on the site while this collection is empty, so
+    // gabbaim can clear the board simply by deleting all the notices.
+    defaults: { title: '', image: '', caption: '', link: '' },
+  },
+
   bulletins: {
     label: 'העלון השבועי',
     seedKey: 'bulletinsData',
@@ -221,6 +237,10 @@ export const SINGLETONS: Record<string, SingletonConfig> = {
   info: {
     label: 'פרטי מוסד',
     seedKey: 'institutionInfo',
+  },
+  sections: {
+    label: 'כותרות באתר',
+    seedKey: 'sectionTexts',
   },
 }
 

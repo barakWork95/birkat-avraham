@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { COLLECTIONS, COLLECTION_KEYS } from '../config/collections'
+import { COLLECTIONS, COLLECTION_KEYS, SINGLETONS, SINGLETON_KEYS } from '../config/collections'
 import { MenuIcon, CloseIcon } from '../components/ui/Icons'
 import type { AuthUser } from '../services/auth/types'
 
@@ -29,7 +29,7 @@ export default function AdminLayout({ children, user, onSignOut }: AdminLayoutPr
     }
   }, [menuOpen])
 
-  // Single source of truth for the admin nav (dashboard + collections + info).
+  // Single source of truth for the admin nav (dashboard + collections + singletons).
   const navItems = [
     { to: '/admin', label: 'לוח בקרה', match: (p: string) => p === '/admin' },
     ...COLLECTION_KEYS.map((key) => ({
@@ -37,15 +37,22 @@ export default function AdminLayout({ children, user, onSignOut }: AdminLayoutPr
       label: COLLECTIONS[key].label,
       match: (p: string) => p.startsWith(`/admin/${key}`),
     })),
-    { to: '/admin/info', label: 'פרטי מוסד', match: (p: string) => p.startsWith('/admin/info') },
+    ...SINGLETON_KEYS.map((key) => ({
+      to: `/admin/${key}`,
+      label: SINGLETONS[key].label,
+      match: (p: string) => p.startsWith(`/admin/${key}`),
+    })),
   ]
+
+  // Where the singleton screens start — the nav draws a divider above them.
+  const firstSingleton = navItems.length - SINGLETON_KEYS.length
 
   const NavList = () => (
     <nav className="flex flex-col gap-1">
       {navItems.map((item, i) => (
         <div key={item.to}>
-          {/* divider before "פרטי מוסד" */}
-          {i === navItems.length - 1 && <div className="my-1 border-t border-ink/10" />}
+          {/* divider between the collections and the singleton screens */}
+          {i === firstSingleton && <div className="my-1 border-t border-ink/10" />}
           <Link
             to={item.to}
             className={`block rounded-lg px-3 py-2 text-sm font-medium transition-colors ${

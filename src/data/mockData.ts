@@ -11,6 +11,7 @@
  *  checked against the domain models in src/types/models.ts.
  * ------------------------------------------------------------------
  */
+import { SECTION_TEXT_DEFAULTS } from '../config/sectionTexts'
 import type {
   Bulletin,
   Contact,
@@ -19,6 +20,7 @@ import type {
   GalleryItem,
   ImpactSlide,
   InstitutionInfo,
+  Notice,
   ScheduleItem,
   Zmanim,
 } from '../types/models'
@@ -248,3 +250,17 @@ export const eventsData = [
 export const bulletinsData = [
   { id: 'b1', title: 'פרשת ראה', date: '2026-08-14', pdf: '', cover: '' },
 ] satisfies Bulletin[]
+
+/**
+ * Notice board (לוח מודעות) — poster images the gabbaim upload each week.
+ * Seeded EMPTY on purpose: the section only appears on the site once there is
+ * at least one notice, so a fresh install shows no empty board.
+ */
+export const noticeboardData = [] satisfies Notice[]
+
+/**
+ * Section headings (eyebrow / title / subtitle) of the public sections.
+ * Seeded from the defaults in src/config/sectionTexts.ts and editable at
+ * /admin/sections; the site falls back to those defaults for anything unset.
+ */
+export const sectionTexts = SECTION_TEXT_DEFAULTS

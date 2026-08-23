@@ -89,6 +89,17 @@ export interface Bulletin extends Entity {
   cover?: string
 }
 
+export interface Notice extends Entity {
+  /** Short title — used as the image alt text and in the admin list. */
+  title: string
+  /** The poster/flyer image (Storage URL, or a data URL in local mode). */
+  image?: string
+  /** Optional caption shown under the poster. */
+  caption?: string
+  /** Optional link the poster points to (registration form, WhatsApp…). */
+  link?: string
+}
+
 export interface InfoContact {
   id: string
   label: string

@@ -20,7 +20,7 @@ const PREFIX = 'ba:'
 const EVENT = 'ba:data-change'
 // Bump this whenever the mockData seed changes so returning visitors get fresh
 // content after a deploy (re-seeds from mockData; discards local demo edits).
-const SEED_VERSION = '2026-08-05c'
+const SEED_VERSION = '2026-08-23a'
 
 const keyFor = (name: string) => `${PREFIX}${name}`
 const singleKey = (name: string) => `${PREFIX}single:${name}`

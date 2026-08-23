@@ -2,6 +2,7 @@ import { useEvents } from '../hooks/useEvents'
 import SectionTitle from './ui/SectionTitle'
 import Skeleton from './ui/Skeleton'
 import { CalendarIcon } from './ui/Icons'
+import { useSectionText } from '../hooks/useSectionText'
 
 /**
  * Events — upcoming community events. Reads from the data provider
@@ -19,16 +20,13 @@ function formatGregorian(date: string | undefined): string | null {
 }
 
 export default function Events() {
+  const text = useSectionText('events')
   const { events, loading } = useEvents()
 
   return (
     <section id="events" className="scroll-mt-28 py-16 sm:py-24">
       <div className="section">
-        <SectionTitle
-          eyebrow="לוח אירועים"
-          title="אירועים קרובים"
-          subtitle="הילולות, מעמדי סיום, שיעורים מיוחדים ופעילות חסד — הצטרפו אלינו."
-        />
+        <SectionTitle eyebrow={text.eyebrow} title={text.title} subtitle={text.subtitle} />
 
         {loading && events.length === 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

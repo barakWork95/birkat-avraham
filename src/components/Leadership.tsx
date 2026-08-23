@@ -3,6 +3,7 @@ import Avatar from './ui/Avatar'
 import Skeleton from './ui/Skeleton'
 import { useCollection } from '../hooks/useCollection'
 import type { Contact } from '../types/models'
+import { useSectionText } from '../hooks/useSectionText'
 
 /**
  * Leadership — staff grid. The featured leader (ראש המוסדות) spans a
@@ -12,6 +13,7 @@ import type { Contact } from '../types/models'
  * panel reflect here immediately — the proven end-to-end slice.
  */
 export default function Leadership() {
+  const text = useSectionText('leadership')
   const { items: leadershipData, loading } = useCollection<Contact>('leadership')
   const featured = leadershipData.find((p) => p.featured)
   const rest = leadershipData.filter((p) => !p.featured)
@@ -19,11 +21,7 @@ export default function Leadership() {
   return (
     <section id="leadership" className="scroll-mt-28 bg-white/60 py-16 sm:py-24">
       <div className="section">
-        <SectionTitle
-          eyebrow="הנהלה וצוות"
-          title="אנשי קשר ובעלי תפקידים"
-          subtitle="העומדים בראש המוסדות ומובילים את פעילות התורה, התפילה והחסד."
-        />
+        <SectionTitle eyebrow={text.eyebrow} title={text.title} subtitle={text.subtitle} />
 
         {/* Loading skeletons (cold Firestore read) */}
         {loading && leadershipData.length === 0 && (
