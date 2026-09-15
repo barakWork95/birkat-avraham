@@ -21,7 +21,13 @@ import {
   orderBy,
   type QuerySnapshot,
 } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
+import {
+  ref,
+  uploadBytes,
+  uploadBytesResumable,
+  getDownloadURL,
+  deleteObject,
+} from 'firebase/storage'
 import { db, storage } from '../firebase'
 import { compressImageToBlob } from '../../lib/compressImage'
 import type { Item, Singleton } from '../../types/models'
@@ -62,12 +68,34 @@ export const firebaseProvider = {
     return getDownloadURL(objectRef)
   },
 
-  /** Upload a file (PDF, etc.) as-is to Storage; return its public download URL. */
-  async uploadFile(file, pathPrefix = 'files') {
+  /**
+   * Upload a file (PDF, video, …) as-is to Storage; return its public download
+   * URL. With `onProgress` the bytes go up resumably so a video upload can
+   * report a percentage instead of hanging on a spinner.
+   */
+  async uploadFile(file, pathPrefix = 'files', onProgress) {
     const ext = (file.name.split('.').pop() || 'bin').toLowerCase()
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
     const objectRef = ref(storage, `${pathPrefix}/${filename}`)
-    await uploadBytes(objectRef, file, { contentType: file.type || 'application/octet-stream' })
+    const metadata = { contentType: file.type || 'application/octet-stream' }
+
+    if (!onProgress) {
+      await uploadBytes(objectRef, file, metadata)
+      return getDownloadURL(objectRef)
+    }
+
+    const task = uploadBytesResumable(objectRef, file, metadata)
+    await new Promise<void>((resolve, reject) => {
+      task.on(
+        'state_changed',
+        (snap) =>
+          onProgress(
+            snap.totalBytes ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100) : 0,
+          ),
+        reject,
+        resolve,
+      )
+    })
     return getDownloadURL(objectRef)
   },
 

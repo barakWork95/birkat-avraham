@@ -5,12 +5,57 @@ import { PlayIcon, StackIcon, CloseIcon, ChevronLeft, ChevronRight } from './ui/
 import { useCollection } from '../hooks/useCollection'
 import type { GalleryItem } from '../types/models'
 import { useSectionText } from '../hooks/useSectionText'
+import { youTubeEmbedUrl, youTubePosterHandlers, youTubeThumbnail } from '../lib/youtube'
+import { isFileVideo } from '../lib/video'
 
 const CATEGORIES = ['הכל', 'שיעורים', 'כולל', 'חסד', 'אירועים', 'נוער']
 
-/** Album cover: explicit cover image, else the first photo entry's image. */
+/**
+ * The tile's preview image, by item type:
+ *   album → its cover, else the first photo in it
+ *   video → the uploaded preview, else YouTube's own frame for a linked video
+ *   photo → the photo itself
+ * An uploaded video with no preview has nothing to show — those keep the
+ * gradient placeholder behind the play button.
+ */
 const coverOf = (g: GalleryItem): string =>
-  g.image || g.media?.find((m) => m.type === 'photo' && m.image)?.image || ''
+  g.type === 'album'
+    ? g.image || g.media?.find((m) => m.type === 'photo' && m.image)?.image || ''
+    : g.type === 'video'
+      ? g.poster || youTubeThumbnail(g.videoUrl) || ''
+      : g.image || ''
+
+/**
+ * Lightbox player. An uploaded file plays in the native player; anything else
+ * is an embeddable page (YouTube links are normalised to their embed form, so
+ * a pasted watch/share URL works as-is).
+ */
+function VideoPlayer({ url, title, poster }: { url: string; title: string; poster?: string }) {
+  return (
+    <div className="aspect-video w-full overflow-hidden rounded-2xl bg-black">
+      {isFileVideo(url) ? (
+        <video
+          key={url}
+          src={url}
+          poster={poster || undefined}
+          controls
+          autoPlay
+          playsInline
+          className="h-full w-full"
+        />
+      ) : (
+        <iframe
+          key={url}
+          src={youTubeEmbedUrl(url)}
+          title={title}
+          className="h-full w-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      )}
+    </div>
+  )
+}
 
 /**
  * Gallery — filterable media grid with a keyboard-navigable lightbox.
@@ -114,8 +159,11 @@ export default function Gallery() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {items.map((g, i) => {
             const isAlbum = g.type === 'album'
-            const cover = isAlbum ? coverOf(g) : g.image
+            const cover = coverOf(g)
             const count = g.media?.length ?? 0
+            // Only linked videos need the maxres→hq swap; a custom preview stays put.
+            const posterHandlers =
+              g.type === 'video' ? youTubePosterHandlers(g.videoUrl, !!g.poster) : undefined
             return (
             <button
               key={g.id}
@@ -129,7 +177,14 @@ export default function Gallery() {
               )}
 
               {cover ? (
-                <img src={cover} alt={g.title} className="absolute inset-0 h-full w-full object-cover" />
+                <img
+                  src={cover}
+                  alt={g.title}
+                  loading="lazy"
+                  onLoad={posterHandlers?.onLoad}
+                  onError={posterHandlers?.onError}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
               ) : (
                 <span className="pointer-events-none absolute inset-0 grid place-items-center font-heading text-6xl text-white/10">
                   ב
@@ -203,15 +258,7 @@ export default function Gallery() {
           >
             {active.type === 'album' ? (
               currentMedia?.type === 'video' && currentMedia.videoUrl ? (
-                <div className="aspect-video w-full overflow-hidden rounded-2xl bg-black">
-                  <iframe
-                    src={currentMedia.videoUrl}
-                    title={active.title}
-                    className="h-full w-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
+                <VideoPlayer url={currentMedia.videoUrl} title={active.title} />
               ) : currentMedia?.image ? (
                 <img
                   src={currentMedia.image}
@@ -226,16 +273,8 @@ export default function Gallery() {
                   <span className="font-heading text-[12rem] text-white/10">ב</span>
                 </div>
               )
-            ) : active.type === 'video' ? (
-              <div className="aspect-video w-full overflow-hidden rounded-2xl bg-black">
-                <iframe
-                  src={active.videoUrl}
-                  title={active.title}
-                  className="h-full w-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
+            ) : active.type === 'video' && active.videoUrl ? (
+              <VideoPlayer url={active.videoUrl} title={active.title} poster={active.poster} />
             ) : active.image ? (
               <img
                 src={active.image}

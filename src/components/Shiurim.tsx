@@ -1,36 +1,15 @@
-import { useEffect, useMemo, useState, type SyntheticEvent } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import SectionTitle from './ui/SectionTitle'
 import { ChevronLeft, ChevronRight, CloseIcon, PlayIcon } from './ui/Icons'
 import { useCollection } from '../hooks/useCollection'
 import { useSectionText } from '../hooks/useSectionText'
-import { youTubeEmbedUrl, youTubeThumbnail } from '../lib/youtube'
+import { youTubeEmbedUrl, youTubePosterHandlers, youTubeThumbnail } from '../lib/youtube'
 import type { Shiur } from '../types/models'
 
 const ALL = 'הכל'
 
 /** Poster frame for a tile: an uploaded cover, else YouTube's own frame. */
 const coverOf = (s: Shiur): string | null => s.image || youTubeThumbnail(s.videoUrl)
-
-/**
- * Older uploads have no maxres frame. YouTube answers those with a 120×90 grey
- * placeholder — and Chrome *renders* it (firing `load`, not `error`, despite
- * the 404), so the giveaway is the decoded width, not a failed request. Either
- * signal swaps the tile to hqdefault, which exists for every video.
- */
-const swapToHqFrame = (s: Shiur, img: HTMLImageElement) => {
-  if (s.image || img.dataset.fallback) return
-  const hq = youTubeThumbnail(s.videoUrl, 'hq')
-  if (!hq) return
-  img.dataset.fallback = '1'
-  img.src = hq
-}
-
-const onCoverLoad = (s: Shiur) => (e: SyntheticEvent<HTMLImageElement>) => {
-  if (e.currentTarget.naturalWidth <= 120) swapToHqFrame(s, e.currentTarget)
-}
-
-const onCoverError = (s: Shiur) => (e: SyntheticEvent<HTMLImageElement>) =>
-  swapToHqFrame(s, e.currentTarget)
 
 /**
  * Shiurim — the rav's video shiurim (שיעורי הרב). A filterable grid of video
@@ -113,6 +92,7 @@ export default function Shiurim() {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((s, i) => {
             const cover = coverOf(s)
+            const posterHandlers = youTubePosterHandlers(s.videoUrl, !!s.image)
             return (
               <button
                 key={s.id}
@@ -126,8 +106,8 @@ export default function Shiurim() {
                       src={cover}
                       alt={s.title}
                       loading="lazy"
-                      onLoad={onCoverLoad(s)}
-                      onError={onCoverError(s)}
+                      onLoad={posterHandlers.onLoad}
+                      onError={posterHandlers.onError}
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (

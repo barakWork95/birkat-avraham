@@ -32,7 +32,15 @@ export interface DataProvider {
 
   // Image storage
   uploadImage(file: File, pathPrefix?: string): Promise<string>
-  /** Upload an arbitrary file (e.g. a PDF) as-is — no image compression. */
-  uploadFile(file: File, pathPrefix?: string): Promise<string>
+  /**
+   * Upload an arbitrary file (e.g. a PDF or a video) as-is — no image
+   * compression. `onProgress` receives 0-100 while the bytes are in flight, so
+   * the admin can show a bar for the large ones.
+   */
+  uploadFile(
+    file: File,
+    pathPrefix?: string,
+    onProgress?: (percent: number) => void,
+  ): Promise<string>
   deleteImage(url: string): Promise<void>
 }

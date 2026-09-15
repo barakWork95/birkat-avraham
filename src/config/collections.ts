@@ -16,9 +16,12 @@ export type FieldType =
   | 'number'
   | 'boolean'
   | 'select'
+  | 'date'
   | 'image'
   | 'media'
   | 'file'
+  /** External link *or* an uploaded video file — the editor offers both. */
+  | 'video'
 
 export interface FieldSchema {
   key: string
@@ -70,7 +73,7 @@ export const COLLECTIONS: Record<string, CollectionConfig> = {
     itemSubtitle: (i) => i.hebrewDate,
     fields: [
       { key: 'title', label: 'כותרת', type: 'text', required: true },
-      { key: 'date', label: 'תאריך (YYYY-MM-DD)', type: 'text' },
+      { key: 'date', label: 'תאריך', type: 'date' },
       { key: 'hebrewDate', label: 'תאריך עברי', type: 'text' },
       { key: 'desc', label: 'תיאור', type: 'textarea' },
     ],
@@ -99,8 +102,14 @@ export const COLLECTIONS: Record<string, CollectionConfig> = {
       },
       {
         key: 'videoUrl',
-        label: 'קישור וידאו',
-        type: 'text',
+        label: 'וידאו',
+        type: 'video',
+        showIf: (i) => i.type === 'video',
+      },
+      {
+        key: 'poster',
+        label: 'תמונת תצוגה מקדימה (רשות)',
+        type: 'image',
         showIf: (i) => i.type === 'video',
       },
       {
@@ -112,13 +121,16 @@ export const COLLECTIONS: Record<string, CollectionConfig> = {
     ],
     // Photos are uploaded to Storage (or inlined as data URLs in local mode).
     // Items with no image fall back to the gradient placeholder. Albums carry a
-    // `media` array (photos uploaded to Storage + videos by URL).
+    // `media` array (photos uploaded to Storage + videos by URL). A video item
+    // holds either an external link or an uploaded file in `videoUrl`; its tile
+    // shows `poster`, else YouTube's own frame.
     defaults: {
       title: '',
       category: 'שיעורים',
       type: 'photo',
       image: '',
       videoUrl: '',
+      poster: '',
       media: [],
       gradient: 'linear-gradient(135deg,#1A1110,#B8860B)',
     },
@@ -247,7 +259,7 @@ export const COLLECTIONS: Record<string, CollectionConfig> = {
     itemSubtitle: (i) => i.date,
     fields: [
       { key: 'title', label: 'כותרת / פרשה', type: 'text', required: true },
-      { key: 'date', label: 'תאריך פרסום (YYYY-MM-DD)', type: 'text' },
+      { key: 'date', label: 'תאריך פרסום', type: 'date' },
       { key: 'pdf', label: 'קובץ PDF', type: 'file' },
       { key: 'cover', label: 'תמונת שער (רשות)', type: 'image' },
     ],

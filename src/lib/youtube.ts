@@ -2,6 +2,7 @@
  * YouTube helpers — the admin may paste any YouTube link (watch, share, embed),
  * so normalise it once here instead of demanding a specific format from gabbaim.
  */
+import type { SyntheticEvent } from 'react'
 
 /** Extract the 11-character video id from any common YouTube URL form. */
 export function youTubeId(url?: string): string | null {
@@ -40,4 +41,30 @@ export function youTubeThumbnail(url?: string, quality: 'max' | 'hq' = 'max'): s
   if (!id) return null
   const file = quality === 'max' ? 'maxresdefault' : 'hqdefault'
   return `https://img.youtube.com/vi/${id}/${file}.jpg`
+}
+
+/**
+ * `onLoad`/`onError` handlers for a tile rendering `youTubeThumbnail(url)`.
+ *
+ * Older uploads have no maxres frame. YouTube answers those with a 120×90 grey
+ * placeholder — and Chrome *renders* it (firing `load`, not `error`, despite
+ * the 404), so the giveaway is the decoded width, not a failed request. Either
+ * signal swaps the tile to hqdefault, which exists for every video.
+ *
+ * `hasCustomCover` short-circuits the swap: an uploaded cover is never replaced.
+ */
+export function youTubePosterHandlers(videoUrl: string | undefined, hasCustomCover: boolean) {
+  const swap = (img: HTMLImageElement) => {
+    if (hasCustomCover || img.dataset.fallback) return
+    const hq = youTubeThumbnail(videoUrl, 'hq')
+    if (!hq) return
+    img.dataset.fallback = '1'
+    img.src = hq
+  }
+  return {
+    onLoad: (e: SyntheticEvent<HTMLImageElement>) => {
+      if (e.currentTarget.naturalWidth <= 120) swap(e.currentTarget)
+    },
+    onError: (e: SyntheticEvent<HTMLImageElement>) => swap(e.currentTarget),
+  }
 }

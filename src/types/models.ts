@@ -49,7 +49,10 @@ export interface GalleryItem extends Entity {
   type: MediaType | 'album'
   /** Single photo, or the album cover (falls back to the first media entry). */
   image?: string
+  /** An external link (YouTube…) or an uploaded video file's URL. */
   videoUrl?: string
+  /** Optional custom tile preview for a video; YouTube's own frame is used when empty. */
+  poster?: string
   gradient?: string
   /** Present when type === 'album'. */
   media?: MediaEntry[]

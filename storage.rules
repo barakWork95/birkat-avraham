@@ -1,10 +1,11 @@
 rules_version = '2';
 
-// Birkat Avraham — Firebase Storage security rules (gallery / staff photos).
-// Public can READ images; only editors (the gabbaim) can upload/replace.
+// Birkat Avraham — Firebase Storage security rules (gallery / staff photos,
+// bulletin PDFs, gallery videos).
+// Public can READ; only editors (the gabbaim) can upload/replace.
 //
 // Publish: Firebase Console → Storage → Rules → Publish
-// (or: firebase deploy --only storage)
+// (or: npm run deploy:rules)
 
 service firebase.storage {
   match /b/{bucket}/o {
@@ -16,9 +17,21 @@ service firebase.storage {
         ];
     }
 
+    // Ceiling for a single upload. Mirrors VIDEO_MAX_MB in src/lib/video.ts —
+    // a gallery video is by far the largest thing the admin can send, and the
+    // client-side check there is a courtesy, not a guarantee. Keep the two in
+    // step if either changes.
+    function withinSizeLimit() {
+      return request.resource.size <= 200 * 1024 * 1024;
+    }
+
     match /{allPaths=**} {
       allow read: if true;
-      allow write: if isEditor();
+      // The size guard goes on create/update only: `request.resource` is null
+      // on a delete, so including it in `write` would break replacing an
+      // image (the editor deletes the file it just swapped out).
+      allow create, update: if isEditor() && withinSizeLimit();
+      allow delete: if isEditor();
     }
   }
 }

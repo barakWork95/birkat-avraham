@@ -85,11 +85,19 @@ export const localProvider = {
   },
 
   /** Local mode: inline the file as a data URL (demo only — large files bloat localStorage). */
-  async uploadFile(file) {
+  async uploadFile(file, _pathPrefix, onProgress) {
     return new Promise<string>((resolve, reject) => {
       const reader = new FileReader()
       reader.onerror = () => reject(new Error('קריאת הקובץ נכשלה'))
-      reader.onload = () => resolve(String(reader.result))
+      reader.onprogress = (e) => {
+        if (onProgress && e.lengthComputable) {
+          onProgress(Math.round((e.loaded / e.total) * 100))
+        }
+      }
+      reader.onload = () => {
+        onProgress?.(100)
+        resolve(String(reader.result))
+      }
       reader.readAsDataURL(file)
     })
   },

@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { COLLECTIONS } from '../config/collections'
 import { provider } from '../services/dataProvider'
+import { isFileVideo, VIDEO_ACCEPT, VIDEO_MAX_MB } from '../lib/video'
 import type { MediaEntry } from '../types/models'
+
+type VideoMode = 'link' | 'upload'
 
 type FormState = Record<string, any>
 
@@ -22,6 +25,10 @@ export default function CollectionEditor() {
   const [busy, setBusy] = useState(false)
   const [uploading, setUploading] = useState<string | null>(null) // image-field key currently uploading
   const [mediaUploading, setMediaUploading] = useState<string | null>(null) // media-field key uploading
+  const [progress, setProgress] = useState<Record<string, number>>({}) // upload % per field key
+  // Which half of a video field is open. Unset = derived from the stored value,
+  // so editing an existing item lands on the tab that actually holds it.
+  const [videoMode, setVideoMode] = useState<Record<string, VideoMode>>({})
 
   useEffect(() => {
     if (!schema || !name) return
@@ -89,6 +96,43 @@ export default function CollectionEditor() {
       setUploading(null)
     }
   }
+
+  /**
+   * Upload a video file to Storage. Videos are far larger than the other
+   * uploads, so this one reports progress and replaces whatever the field held
+   * before (an old upload is removed; a plain link has nothing to clean up).
+   */
+  const onPickVideo = async (key: string, file?: File) => {
+    if (!file) return
+    if (file.size > VIDEO_MAX_MB * 1024 * 1024) {
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1)
+      setErrors((e) => ({ ...e, [key]: `הסרטון גדול מדי (${sizeMb}MB) — מקסימום ${VIDEO_MAX_MB}MB` }))
+      return
+    }
+    setErrors((e) => ({ ...e, [key]: undefined }))
+    setUploading(key)
+    setProgress((p) => ({ ...p, [key]: 0 }))
+    const previous = form[key]
+    try {
+      const url = await provider.uploadFile(file, `${name}/video`, (percent) =>
+        setProgress((p) => ({ ...p, [key]: percent })),
+      )
+      set(key, url)
+      if (previous) provider.deleteImage?.(previous)
+    } catch (err) {
+      setErrors((e) => ({ ...e, [key]: (err as Error).message || 'העלאת הסרטון נכשלה' }))
+    } finally {
+      setUploading(null)
+      setProgress((p) => {
+        const { [key]: _drop, ...rest } = p
+        return rest
+      })
+    }
+  }
+
+  /** Switch a video field between an external link and an uploaded file. */
+  const modeOf = (key: string): VideoMode =>
+    videoMode[key] ?? (isFileVideo(form[key]) ? 'upload' : 'link')
 
   // ── Media repeater (album `media[]`) — functional updates avoid stale closures.
   const getMedia = (key: string): MediaEntry[] => (Array.isArray(form[key]) ? form[key] : [])
@@ -202,6 +246,18 @@ export default function CollectionEditor() {
               {f.type === 'text' && (
                 <input type="text" value={form[f.key] ?? ''} onChange={(e) => set(f.key, e.target.value)} className={fieldCls} />
               )}
+              {/* Native picker: guarantees a valid YYYY-MM-DD, and localises itself.
+                  Kept dir=ltr (its segments are always LTR) but right-aligned to
+                  sit with the rest of the RTL form. */}
+              {f.type === 'date' && (
+                <input
+                  type="date"
+                  dir="ltr"
+                  value={form[f.key] ?? ''}
+                  onChange={(e) => set(f.key, e.target.value)}
+                  className={`${fieldCls} text-right`}
+                />
+              )}
               {f.type === 'number' && (
                 <input type="number" value={form[f.key] ?? ''} onChange={(e) => set(f.key, e.target.value)} className={fieldCls} />
               )}
@@ -278,6 +334,99 @@ export default function CollectionEditor() {
                     <button type="button" onClick={() => onRemoveImage(f.key)} className="text-sm text-red-600 hover:underline">
                       הסרה
                     </button>
+                  )}
+                </div>
+              )}
+              {f.type === 'video' && (
+                <div className="space-y-3">
+                  {/* Link vs. upload — two ways to fill one field, so only the
+                      matching half of the value is ever shown in each tab. */}
+                  <div className="inline-flex rounded-lg bg-cream p-0.5 text-xs font-semibold">
+                    {(['link', 'upload'] as const).map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setVideoMode((v) => ({ ...v, [f.key]: m }))}
+                        disabled={uploading === f.key}
+                        className={`rounded-md px-3 py-1.5 transition-colors disabled:opacity-50 ${
+                          modeOf(f.key) === m ? 'bg-white text-gold-hover shadow-card' : 'text-ink-muted'
+                        }`}
+                      >
+                        {m === 'link' ? 'קישור וידאו' : 'העלאת קובץ'}
+                      </button>
+                    ))}
+                  </div>
+
+                  {modeOf(f.key) === 'link' ? (
+                    <div className="space-y-1">
+                      <input
+                        type="text"
+                        dir="ltr"
+                        value={isFileVideo(form[f.key]) ? '' : (form[f.key] ?? '')}
+                        onChange={(e) => set(f.key, e.target.value)}
+                        placeholder="https://www.youtube.com/watch?v=…"
+                        className={fieldCls}
+                      />
+                      <p className="text-xs text-ink-muted">
+                        כל צורת קישור של יוטיוב מתאימה — התמונה המקדימה תילקח משם אוטומטית.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {uploading === f.key ? (
+                        <div className="space-y-1">
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-cream">
+                            <div
+                              className="h-full rounded-full bg-gold transition-all"
+                              style={{ width: `${progress[f.key] ?? 0}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-ink-muted">מעלה… {progress[f.key] ?? 0}%</p>
+                        </div>
+                      ) : isFileVideo(form[f.key]) ? (
+                        <video
+                          src={form[f.key]}
+                          controls
+                          preload="metadata"
+                          className="max-h-56 w-full rounded-xl bg-black"
+                        />
+                      ) : (
+                        <p className="rounded-xl border border-dashed border-ink/15 bg-cream px-4 py-6 text-center text-sm text-ink-muted">
+                          אין עדיין קובץ וידאו.
+                        </p>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-3">
+                        <label
+                          className={`btn-outline cursor-pointer text-sm ${uploading === f.key ? 'pointer-events-none opacity-60' : ''}`}
+                        >
+                          {uploading === f.key
+                            ? 'מעלה…'
+                            : isFileVideo(form[f.key])
+                              ? 'החלפת קובץ'
+                              : 'העלאת קובץ וידאו'}
+                          <input
+                            type="file"
+                            accept={VIDEO_ACCEPT}
+                            className="hidden"
+                            disabled={uploading === f.key}
+                            onChange={(e) => onPickVideo(f.key, e.target.files?.[0])}
+                          />
+                        </label>
+                        {isFileVideo(form[f.key]) && uploading !== f.key && (
+                          <button
+                            type="button"
+                            onClick={() => onRemoveImage(f.key)}
+                            className="text-sm text-red-600 hover:underline"
+                          >
+                            הסרה
+                          </button>
+                        )}
+                        <span className="text-xs text-ink-muted">
+                          MP4 / WebM, עד {VIDEO_MAX_MB}MB
+                        </span>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
