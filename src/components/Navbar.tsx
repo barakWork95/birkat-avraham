@@ -15,7 +15,7 @@ const NAV_LINKS: { href: string; label: string; optional?: OptionalSection }[] =
   { href: '#noticeboard', label: 'לוח מודעות', optional: 'noticeboard' },
   { href: '#bulletin', label: 'העלון' },
   { href: '#shiurim', label: 'שיעורים', optional: 'shiurim' },
-  { href: '#leadership', label: 'אנשי קשר' },
+  { href: '#leadership', label: 'אודות' },
   { href: '#gallery', label: 'גלריה' },
   { href: '#events', label: 'אירועים', optional: 'events' },
   { href: '#location', label: 'צור קשר' },

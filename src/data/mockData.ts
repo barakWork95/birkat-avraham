@@ -22,6 +22,7 @@ import type {
   InstitutionInfo,
   Notice,
   Shiur,
+  HeroImage,
   ScheduleItem,
   Zmanim,
 } from '../types/models'
@@ -60,6 +61,12 @@ export const institutionInfo = {
 } satisfies InstitutionInfo
 
 /**
+ * Hero background photos. Empty on purpose: the hero falls back to the
+ * gallery's photos until the gabbai picks dedicated ones (see useHeroImages).
+ */
+export const heroImagesData = [] satisfies HeroImage[]
+
+/**
  * Top bar — Zmanim & Hebrew date.
  * Static fallback; the live source is a Hebcal API call (see useZmanim.ts).
  */
@@ -83,9 +90,18 @@ export const scheduleData = {
     { key: 'kollel', label: 'כולל ערב' },
   ],
   tefilot: [
-    { id: 'p1', name: 'שחרית', time: '06:00 · 08:00', location: 'בית המדרש' },
-    { id: 'p2', name: 'מנחה', time: '13:30 · 18:45', location: 'בית המדרש' },
-    { id: 'p3', name: 'ערבית', time: '19:00', location: 'בית המדרש' },
+    { id: 'p1', name: 'שחרית', day: 'חול', time: '06:00 · 08:00', sub: '2 מניינים', location: 'בית המדרש' },
+    { id: 'p2', name: 'מנחה', day: 'חול', time: '18:30', location: 'בית המדרש' },
+    { id: 'p3', name: 'ערבית', day: 'חול', time: '18:50', location: 'בית המדרש' },
+    { id: 'p4', name: 'שחרית', day: 'שבת', time: '08:00', location: 'בית המדרש' },
+    {
+      id: 'p5',
+      name: 'מנחה',
+      day: 'שבת',
+      time: '13:30',
+      sub: 'השיעור המרכזי מיד לאחר התפילה',
+      location: 'בית המדרש',
+    },
   ] satisfies ScheduleItem[],
   shiurim: [
     {

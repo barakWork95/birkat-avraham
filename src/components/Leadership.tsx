@@ -6,17 +6,21 @@ import type { Contact } from '../types/models'
 import { useSectionText } from '../hooks/useSectionText'
 
 /**
- * Leadership — staff grid. The featured leader (ראש המוסדות) spans a
- * wider, elevated card at the top.
+ * Leadership — the "אודות" section: the featured leader (ראש המוסדות) with the
+ * rav's bio in a wide card, then the rest of the staff grid.
  *
- * Reads from the data provider (useCollection), so edits made in the admin
- * panel reflect here immediately — the proven end-to-end slice.
+ * The bio is the section's `body` text (edited with the headings in
+ * /admin/sections); blank lines split it into paragraphs.
  */
 export default function Leadership() {
   const text = useSectionText('leadership')
   const { items: leadershipData, loading } = useCollection<Contact>('leadership')
   const featured = leadershipData.find((p) => p.featured)
   const rest = leadershipData.filter((p) => !p.featured)
+  const paragraphs = (text.body ?? '')
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean)
 
   return (
     <section id="leadership" className="scroll-mt-28 bg-white/60 py-16 sm:py-24">
@@ -37,16 +41,32 @@ export default function Leadership() {
           </div>
         )}
 
-        {/* Featured */}
-        {featured && (
-          <div className="card mx-auto mb-6 flex max-w-3xl flex-col items-center gap-6 p-7 text-center ring-2 ring-gold/30 sm:flex-row sm:text-right">
-            <Avatar name={featured.name} src={featured.img} size="h-28 w-28" featured />
-            <div>
-              <span className="eyebrow">{featured.title}</span>
-              <h3 className="font-heading text-2xl font-bold text-ink">{featured.name}</h3>
-              <p className="mt-2 text-ink-muted">{featured.desc}</p>
-            </div>
-          </div>
+        {/* Featured leader + bio */}
+        {(featured || paragraphs.length > 0) && (
+          <article className="card mx-auto mb-6 max-w-4xl p-7 ring-2 ring-gold/30 sm:p-9">
+            {featured && (
+              <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:text-right">
+                <Avatar name={featured.name} src={featured.img} size="h-28 w-28" featured />
+                <div>
+                  <span className="eyebrow">{featured.title}</span>
+                  <h3 className="font-heading text-2xl font-bold text-ink">{featured.name}</h3>
+                  {featured.desc && <p className="mt-2 text-ink-muted">{featured.desc}</p>}
+                </div>
+              </div>
+            )}
+            {paragraphs.length > 0 && (
+              // Justified only from sm up — on a phone's narrow column it opens rivers.
+              <div
+                className={`space-y-4 text-[1.05rem] leading-loose text-ink-soft sm:text-justify ${
+                  featured ? 'mt-7 border-t border-gold/15 pt-7' : ''
+                }`}
+              >
+                {paragraphs.map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </div>
+            )}
+          </article>
         )}
 
         {/* Grid */}

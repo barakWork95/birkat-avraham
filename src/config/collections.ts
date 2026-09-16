@@ -10,6 +10,8 @@
  * ------------------------------------------------------------------
  */
 
+import { normalizeTefila, TEFILA_DAYS } from '../lib/tefilot'
+
 export type FieldType =
   | 'text'
   | 'textarea'
@@ -40,6 +42,11 @@ export interface CollectionConfig {
   itemSubtitle?: (item: any) => string
   fields: FieldSchema[]
   defaults: Record<string, unknown>
+  /**
+   * Optional: bring a stored item up to the current shape when it is opened in
+   * the editor, so saving it once migrates it (e.g. legacy prayer names).
+   */
+  normalize?: (item: any) => any
 }
 
 export interface SingletonConfig {
@@ -51,8 +58,21 @@ export interface SingletonConfig {
 export const SHIUR_CATEGORIES = ['זוגיות וחינוך', 'הלכה ושו"ת', 'פרשת השבוע', 'נוער וחיזוק']
 
 export const COLLECTIONS: Record<string, CollectionConfig> = {
+  heroImages: {
+    label: 'תמונות רקע (ראש העמוד)',
+    seedKey: 'heroImagesData',
+    itemTitle: (i) => i.title,
+    fields: [
+      { key: 'title', label: 'תיאור (לזיהוי ברשימה)', type: 'text', required: true },
+      { key: 'image', label: 'תמונה (רחבה, לרוחב)', type: 'image', required: true },
+    ],
+    // The hero cross-fades through these behind a dark overlay. While the list
+    // is empty it falls back to the gallery's photos, so it is never bare.
+    defaults: { title: '', image: '' },
+  },
+
   leadership: {
-    label: 'אנשי קשר',
+    label: 'אודות — אנשי צוות',
     seedKey: 'leadershipData',
     itemTitle: (i) => i.name,
     itemSubtitle: (i) => i.title,
@@ -175,15 +195,18 @@ export const COLLECTIONS: Record<string, CollectionConfig> = {
   scheduleTefilot: {
     label: 'תפילות (לו"ז)',
     seedKey: 'scheduleTefilot',
-    itemTitle: (i) => i.name,
-    itemSubtitle: (i) => [i.time, i.sub].filter(Boolean).join(' · '),
+    itemTitle: (i) => normalizeTefila(i).name,
+    itemSubtitle: (i) => [normalizeTefila(i).day, i.time, i.sub].filter(Boolean).join(' · '),
     fields: [
       { key: 'name', label: 'שם התפילה', type: 'text', required: true },
+      // The site groups by this — no need to write "(חול)" / "(שבת)" in the name.
+      { key: 'day', label: 'חול / שבת', type: 'select', options: [...TEFILA_DAYS] },
       { key: 'time', label: 'שעה', type: 'text' },
-      { key: 'sub', label: 'הערה (ימים / מניין)', type: 'text' },
+      { key: 'sub', label: 'הערה (מניין / שיעור אחרי התפילה)', type: 'text' },
       { key: 'location', label: 'מיקום', type: 'text' },
     ],
-    defaults: { name: '', time: '', sub: '', location: 'בית המדרש' },
+    defaults: { name: '', day: 'חול', time: '', sub: '', location: 'בית המדרש' },
+    normalize: normalizeTefila,
   },
 
   scheduleShiurim: {

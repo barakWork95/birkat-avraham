@@ -46,12 +46,19 @@ export default {
           '0%': { backgroundPosition: '200% 0' },
           '100%': { backgroundPosition: '-200% 0' },
         },
+        // Slow push-in on the hero's background photos.
+        kenburns: {
+          '0%': { transform: 'scale(1.12)' },
+          '100%': { transform: 'scale(1)' },
+        },
       },
       animation: {
         'fade-up': 'fade-up 0.6s ease-out both',
         'fade-in': 'fade-in 0.8s ease-out both',
         'scale-in': 'scale-in 0.3s ease-out both',
         shimmer: 'shimmer 3s linear infinite',
+        kenburns: 'kenburns 9s ease-out both',
+        'fade-in-slow': 'fade-in 1.6s ease-in-out both',
       },
     },
   },

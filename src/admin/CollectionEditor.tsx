@@ -37,7 +37,10 @@ export default function CollectionEditor() {
     } else {
       provider.getAll(name).then((items) => {
         const found = items.find((i) => i.id === id)
-        setForm(found ? { ...schema.defaults, ...found } : { ...schema.defaults })
+        // Normalise the STORED item before defaults fill its gaps — otherwise a
+        // default (e.g. day: 'חול') would pre-empt what the old data implies.
+        const stored = found && schema.normalize ? schema.normalize(found) : found
+        setForm({ ...schema.defaults, ...stored })
       })
     }
   }, [name, id, isNew, schema])

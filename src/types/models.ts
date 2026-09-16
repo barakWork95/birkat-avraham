@@ -74,11 +74,23 @@ export interface ImpactSlide extends Entity {
   gradient?: string
 }
 
+/** Which part of the week a prayer belongs to (the תפילות tab groups by it). */
+export type TefilaDay = 'חול' | 'שבת'
+
 export interface ScheduleItem extends Entity {
   name: string
   time?: string
   sub?: string
   location?: string
+  /** תפילות only. Older items carry it in the name instead — see lib/tefilot.ts. */
+  day?: TefilaDay
+}
+
+/** A background photo for the homepage hero. */
+export interface HeroImage extends Entity {
+  /** Admin-list label only (e.g. "בית המדרש"). */
+  title: string
+  image: string
 }
 
 export interface Bulletin extends Entity {
@@ -144,6 +156,11 @@ export interface InstitutionInfo {
   kollelEmail?: string
   bankTransfer?: BankTransfer
   nedarimMosadId?: string
+  /** Registered association (עמותה) name and number, shown with the donation form. */
+  amutaName?: string
+  amutaNumber?: string
+  /** The Section 46 tax-credit notice. Cleared = hidden (e.g. if the approval lapses). */
+  taxNotice?: string
 }
 
 export interface Zmanim {

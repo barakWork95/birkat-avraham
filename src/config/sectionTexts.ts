@@ -18,6 +18,11 @@ export interface SectionText {
   eyebrow?: string
   title?: string
   subtitle?: string
+  /**
+   * Longer copy under the heading. Only sections whose defaults declare it get
+   * the field in the admin. Paragraphs are separated by a blank line.
+   */
+  body?: string
 }
 
 export interface SectionTextConfig {
@@ -28,6 +33,15 @@ export interface SectionTextConfig {
 }
 
 export const SECTION_TEXTS: SectionTextConfig[] = [
+  {
+    key: 'hero',
+    label: 'ראש העמוד',
+    defaults: {
+      eyebrow: 'תורה · תפילה · חסד',
+      title: 'להרביץ תורה, לרומם כל יהודי',
+      subtitle: 'עם מו"ר הגאון הרב איתן אברהם שליט"א, ראש מוסדות ״ברכת אברהם״',
+    },
+  },
   {
     key: 'donation',
     label: 'תרומות',
@@ -76,11 +90,14 @@ export const SECTION_TEXTS: SectionTextConfig[] = [
   },
   {
     key: 'leadership',
-    label: 'אנשי קשר',
+    label: 'אודות',
     defaults: {
-      eyebrow: 'הנהלה וצוות',
-      title: 'אנשי קשר ובעלי תפקידים',
+      eyebrow: 'אודות',
+      title: 'ראש המוסדות',
       subtitle: 'העומדים בראש המוסדות ומובילים את פעילות התורה, התפילה והחסד.',
+      body:
+        'מו"ר הגאון הרב איתן אברהם שליט"א הוא מהדמויות המרכזיות והמוערכות בתחום הרבצת התורה, החיזוק והפצת היהדות. שיעוריו ושיחותיו מגיעים לציבור רחב ומצליחים לעורר חיבור עמוק לאמונה, יראת שמיים ואור פנימי לחיים.\n\n' +
+        'שיעוריו של הרב מאופיינים בבהירות נדירה, חום לב, גישה ישירה ואמיתית, ובעיקר ביכולת להנגיש את יסודות התורה והאמונה לכל אדם בכל מקום. הרב פועל במסירות נפש מתוך שליחות אחת: לחזק ולרומם כל יהודי באשר הוא.',
     },
   },
   {

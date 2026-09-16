@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { provider } from '../services/dataProvider'
+import { INFO_DEFAULTS } from '../config/infoDefaults'
 
 type InfoForm = Record<string, any>
 
@@ -9,6 +10,13 @@ type InfoForm = Record<string, any>
  */
 const fieldCls =
   'w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink placeholder:text-ink-muted/60 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20'
+
+/** Legal details shown under the donation form's heading. Empty = line hidden. */
+const AMUTA_FIELDS = [
+  { key: 'taxNotice', label: 'אישור סעיף 46', hint: 'יש לרוקן את השדה אם תוקף האישור פג' },
+  { key: 'amutaNumber', label: 'מספר עמותה רשומה' },
+  { key: 'amutaName', label: 'שם העמותה' },
+]
 
 const SCALARS = [
   { key: 'nameHe', label: 'שם המוסד' },
@@ -27,7 +35,9 @@ export default function InfoEditor() {
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    provider.getSingleton('info').then((d) => setForm({ contacts: [], bankTransfer: {}, ...d }))
+    provider
+      .getSingleton('info')
+      .then((d) => setForm({ contacts: [], bankTransfer: {}, ...INFO_DEFAULTS, ...d }))
   }, [])
 
   if (!form) return <p className="text-ink-muted">טוען…</p>
@@ -60,7 +70,7 @@ export default function InfoEditor() {
   const reset = async () => {
     if (!window.confirm('לשחזר את פרטי המוסד לברירת המחדל?')) return
     const seed = await provider.resetSingleton('info')
-    setForm({ contacts: [], bankTransfer: {}, ...seed })
+    setForm({ contacts: [], bankTransfer: {}, ...INFO_DEFAULTS, ...seed })
     setSaved(true)
   }
 
@@ -114,6 +124,23 @@ export default function InfoEditor() {
             >
               מחיקה
             </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Association / tax details */}
+      <div className="card mt-5 space-y-4 p-6">
+        <div>
+          <h2 className="font-heading text-lg font-bold">פרטי עמותה ואישור מס</h2>
+          <p className="text-sm text-ink-muted">מוצגים מתחת לכותרת טופס התרומה. שדה ריק — השורה לא תוצג.</p>
+        </div>
+        {AMUTA_FIELDS.map((f) => (
+          <div key={f.key}>
+            <label className="mb-1 block text-sm font-semibold">
+              {f.label}
+              {f.hint && <span className="mr-2 font-normal text-ink-muted">· {f.hint}</span>}
+            </label>
+            <input type="text" value={form[f.key] ?? ''} onChange={(e) => set(f.key, e.target.value)} className={fieldCls} />
           </div>
         ))}
       </div>

@@ -82,6 +82,17 @@ export const HeartIcon = ({ className = 'h-5 w-5', filled = false }: ToggleIconP
   </svg>
 )
 
+/** A seal with a tick — for verified/approved notices. */
+export const CheckBadgeIcon = ({ className = 'h-5 w-5' }: IconProps) => (
+  <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <path
+      d="M12 3l2.2 1.6 2.7-.2.9 2.6 2.2 1.6-.9 2.6.9 2.6-2.2 1.6-.9 2.6-2.7-.2L12 21l-2.2-1.6-2.7.2-.9-2.6-2.2-1.6.9-2.6-.9-2.6 2.2-1.6.9-2.6 2.7.2L12 3z"
+      strokeLinejoin="round"
+    />
+    <path d="M8.8 12.2l2.2 2.2 4.2-4.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
 export const PlayIcon = ({ className = 'h-6 w-6' }: IconProps) => (
   <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="currentColor">
     <path d="M8 5v14l11-7z" />

@@ -24,7 +24,7 @@ export default function Footer({ onDonate }: FooterProps) {
       : []),
     { href: '#bulletin', label: 'העלון השבועי' },
     ...(visible.shiurim ? [{ href: '#shiurim', label: 'שיעורי הרב' }] : []),
-    { href: '#leadership', label: 'אנשי קשר' },
+    { href: '#leadership', label: 'אודות' },
     { href: '#gallery', label: 'גלריה' },
     { href: '#donate', label: 'תרומה' },
     { href: '#location', label: 'צור קשר' },

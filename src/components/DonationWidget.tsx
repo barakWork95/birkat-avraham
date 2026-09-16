@@ -1,7 +1,8 @@
 import { useRef } from 'react'
 import { useDonation } from '../hooks/useDonation'
-import { HeartIcon } from './ui/Icons'
+import { CheckBadgeIcon, HeartIcon } from './ui/Icons'
 import NedarimIframe from './NedarimIframe'
+import { useInfo } from '../hooks/useInfo'
 import { isNedarimConfigured } from '../services/nedarimPlus'
 import type { DonationResult, NedarimPayload } from '../services/nedarimPlus'
 
@@ -31,6 +32,7 @@ const DONATION_TYPES = [
 export default function DonationWidget({ onDonate }: DonationWidgetProps = {}) {
   const frameRef = useRef<HTMLIFrameElement>(null)
   const live = isNedarimConfigured()
+  const { taxNotice, amutaNumber, amutaName } = useInfo()
   const d = useDonation({ ...(onDonate ? { onDonate } : {}), iframeRef: frameRef })
 
   if (d.status === 'success') {
@@ -58,13 +60,26 @@ export default function DonationWidget({ onDonate }: DonationWidgetProps = {}) {
 
   return (
     <div className="card p-6 sm:p-7">
-      <div className="mb-5 flex items-center gap-3">
-        <span className="grid h-11 w-11 place-items-center rounded-xl bg-gold/10 text-gold">
+      <div className="mb-5 flex items-start gap-3">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gold/10 text-gold">
           <HeartIcon className="h-6 w-6" />
         </span>
-        <div>
+        <div className="min-w-0">
           <h3 className="font-heading text-xl font-bold text-ink">תרומה למוסדות</h3>
-          <p className="text-sm text-ink-muted">בזכות התורה והחסד</p>
+          {/* Legal details (institution info; each line hides when cleared in the admin) */}
+          {taxNotice && (
+            // rounded-lg, not a pill: it wraps to two lines on a phone.
+            <p className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-gold/10 px-2.5 py-1 text-xs font-semibold leading-snug text-gold-hover ring-1 ring-gold/20">
+              <CheckBadgeIcon className="h-4 w-4 shrink-0" />
+              {taxNotice}
+            </p>
+          )}
+          {(amutaNumber || amutaName) && (
+            <div className="mt-1.5 text-xs leading-relaxed text-ink-muted">
+              {amutaNumber && <p>עמותה רשומה: {amutaNumber}</p>}
+              {amutaName && <p>עמותת ״{amutaName}״</p>}
+            </div>
+          )}
         </div>
       </div>
 

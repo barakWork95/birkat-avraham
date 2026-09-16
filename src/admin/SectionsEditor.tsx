@@ -7,15 +7,21 @@ type TextMap = Record<string, SectionText>
 const fieldCls =
   'w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-ink placeholder:text-ink-muted/60 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20'
 
-const LINES: { key: keyof SectionText; label: string; hint: string }[] = [
+const LINES: { key: keyof SectionText; label: string; hint: string; rows?: number }[] = [
   { key: 'eyebrow', label: 'תווית עליונה', hint: 'הטקסט הקטן מעל הכותרת' },
   { key: 'title', label: 'כותרת', hint: 'הכותרת הראשית של הקטע' },
-  { key: 'subtitle', label: 'כותרת משנה', hint: 'משפט ההסבר מתחת לכותרת' },
+  { key: 'subtitle', label: 'כותרת משנה', hint: 'משפט ההסבר מתחת לכותרת', rows: 2 },
+  { key: 'body', label: 'טקסט', hint: 'פסקאות מופרדות בשורה ריקה', rows: 8 },
 ]
+
+/** A section edits `body` only if its defaults declare one. */
+const linesFor = (defaults: SectionText) =>
+  LINES.filter((l) => l.key !== 'body' || defaults.body !== undefined)
 
 /**
  * SectionsEditor — edits the `sections` singleton: the eyebrow/title/subtitle
- * of every section on the public site.
+ * of every section on the public site, plus the longer text of the sections
+ * that have one (e.g. the rav's bio under "אודות").
  *
  * A field left EMPTY is saved as an empty string on purpose — that hides the
  * line on the site (e.g. a section with no subtitle). "שחזור" puts the original
@@ -54,11 +60,9 @@ export default function SectionsEditor() {
       const payload: TextMap = Object.fromEntries(
         SECTION_TEXTS.map((s) => [
           s.key,
-          {
-            eyebrow: valueOf(s.key, 'eyebrow', s.defaults.eyebrow),
-            title: valueOf(s.key, 'title', s.defaults.title),
-            subtitle: valueOf(s.key, 'subtitle', s.defaults.subtitle),
-          },
+          Object.fromEntries(
+            linesFor(s.defaults).map((l) => [l.key, valueOf(s.key, l.key, s.defaults[l.key])]),
+          ),
         ]),
       )
       await provider.setSingleton('sections', payload)
@@ -89,15 +93,15 @@ export default function SectionsEditor() {
               </button>
             </div>
 
-            {LINES.map((line) => (
+            {linesFor(s.defaults).map((line) => (
               <div key={line.key}>
                 <label className="mb-1 block text-sm font-semibold">
                   {line.label}
                   <span className="mr-2 font-normal text-ink-muted">· {line.hint}</span>
                 </label>
-                {line.key === 'subtitle' ? (
+                {line.rows ? (
                   <textarea
-                    rows={2}
+                    rows={line.rows}
                     value={valueOf(s.key, line.key, s.defaults[line.key])}
                     onChange={(e) => set(s.key, line.key, e.target.value)}
                     className={fieldCls}
