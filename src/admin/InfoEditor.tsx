@@ -18,6 +18,14 @@ const AMUTA_FIELDS = [
   { key: 'amutaName', label: 'שם העמותה' },
 ]
 
+/** The PushCoins card in the donation section. Empty title + text = no card. */
+const PUSHCOINS_FIELDS = [
+  { key: 'pushcoinsTitle', label: 'כותרת' },
+  { key: 'pushcoinsText', label: 'תיאור', rows: 3 },
+  { key: 'pushcoinsButton', label: 'טקסט הכפתור' },
+  { key: 'pushcoinsUrl', label: 'קישור הכפתור', hint: 'כתובת מלאה (https://…). שדה ריק — אין כפתור', ltr: true },
+]
+
 const SCALARS = [
   { key: 'nameHe', label: 'שם המוסד' },
   { key: 'tagline', label: 'סלוגן' },
@@ -141,6 +149,33 @@ export default function InfoEditor() {
               {f.hint && <span className="mr-2 font-normal text-ink-muted">· {f.hint}</span>}
             </label>
             <input type="text" value={form[f.key] ?? ''} onChange={(e) => set(f.key, e.target.value)} className={fieldCls} />
+          </div>
+        ))}
+      </div>
+
+      {/* PushCoins */}
+      <div className="card mt-5 space-y-4 p-6">
+        <div>
+          <h2 className="font-heading text-lg font-bold">קופת צדקה דיגיטלית (PushCoins)</h2>
+          <p className="text-sm text-ink-muted">כרטיס בקטע התרומות, ליד פרטי ההעברה הבנקאית. כותרת ותיאור ריקים — הכרטיס לא יוצג.</p>
+        </div>
+        {PUSHCOINS_FIELDS.map((f) => (
+          <div key={f.key}>
+            <label className="mb-1 block text-sm font-semibold">
+              {f.label}
+              {f.hint && <span className="mr-2 font-normal text-ink-muted">· {f.hint}</span>}
+            </label>
+            {f.rows ? (
+              <textarea rows={f.rows} value={form[f.key] ?? ''} onChange={(e) => set(f.key, e.target.value)} className={fieldCls} />
+            ) : (
+              <input
+                type="text"
+                dir={f.ltr ? 'ltr' : undefined}
+                value={form[f.key] ?? ''}
+                onChange={(e) => set(f.key, e.target.value)}
+                className={fieldCls}
+              />
+            )}
           </div>
         ))}
       </div>

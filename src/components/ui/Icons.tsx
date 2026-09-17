@@ -82,6 +82,23 @@ export const HeartIcon = ({ className = 'h-5 w-5', filled = false }: ToggleIconP
   </svg>
 )
 
+/** A coin — for the digital tzedakah box. */
+export const CoinIcon = ({ className = 'h-5 w-5' }: IconProps) => (
+  <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <ellipse cx="12" cy="7" rx="7" ry="3" />
+    <path d="M5 7v5c0 1.66 3.13 3 7 3s7-1.34 7-3V7" />
+    <path d="M5 12v5c0 1.66 3.13 3 7 3s7-1.34 7-3v-5" />
+  </svg>
+)
+
+/** Arrow out of a box — marks a link that opens a new tab. */
+export const ExternalLinkIcon = ({ className = 'h-4 w-4' }: IconProps) => (
+  <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <path d="M14 4h6v6M20 4l-9 9" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5" strokeLinecap="round" />
+  </svg>
+)
+
 /** A seal with a tick — for verified/approved notices. */
 export const CheckBadgeIcon = ({ className = 'h-5 w-5' }: IconProps) => (
   <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

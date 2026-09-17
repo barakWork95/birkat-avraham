@@ -161,6 +161,14 @@ export interface InstitutionInfo {
   amutaNumber?: string
   /** The Section 46 tax-credit notice. Cleared = hidden (e.g. if the approval lapses). */
   taxNotice?: string
+  /**
+   * The PushCoins (digital tzedakah box) card in the donation section. The card
+   * shows while it has a title or text; the button only with an http(s) link.
+   */
+  pushcoinsTitle?: string
+  pushcoinsText?: string
+  pushcoinsButton?: string
+  pushcoinsUrl?: string
 }
 
 export interface Zmanim {
