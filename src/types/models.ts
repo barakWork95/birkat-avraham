@@ -136,6 +136,16 @@ export interface InfoContact {
 
 export interface BankTransfer {
   accountName?: string
+  /** Bank name alone, e.g. "מרכנתיל" — the site adds "(מס׳ 17)" from `bankCode`. */
+  bankName?: string
+  bankCode?: string
+  /** Branch name alone, e.g. "אשדוד" — the site shows "740 (אשדוד)". */
+  branchName?: string
+  branchNumber?: string
+  /**
+   * Legacy free text ("מרכנתיל (מס׳ 17)", " (אשדוד) 740"), from before the split
+   * fields. Read only as a fallback while the split ones were never saved.
+   */
   bank?: string
   branch?: string
   account?: string

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { provider } from '../services/dataProvider'
 import { INFO_DEFAULTS } from '../config/infoDefaults'
+import { bankLabel, branchLabel, withSplitBankFields } from '../lib/bankDetails'
 
 type InfoForm = Record<string, any>
 
@@ -26,6 +27,30 @@ const PUSHCOINS_FIELDS = [
   { key: 'pushcoinsUrl', label: 'קישור הכפתור', hint: 'כתובת מלאה (https://…). שדה ריק — אין כפתור', ltr: true },
 ]
 
+/**
+ * Bank details, with bank and branch split into name + number so nobody types
+ * parentheses — the site formats them ("מרכנתיל (מס׳ 17)", "740 (אשדוד)").
+ */
+const BANK_FIELDS: { key: string; label: string; numeric?: boolean; half?: boolean }[] = [
+  { key: 'accountName', label: 'שם החשבון' },
+  { key: 'bankName', label: 'שם הבנק', half: true },
+  { key: 'bankCode', label: 'מספר בנק', numeric: true, half: true },
+  { key: 'branchName', label: 'שם הסניף', half: true },
+  { key: 'branchNumber', label: 'מספר סניף', numeric: true, half: true },
+  { key: 'account', label: 'מספר חשבון', numeric: true },
+  { key: 'iban', label: 'IBAN להעברה מחו"ל (רשות — להעתיק בדיוק כפי שהבנק מסר)' },
+]
+
+/**
+ * The form's starting state: defaults under the stored info, and the bank
+ * details split — details saved before the split arrive as free text, which is
+ * parsed into the new fields here, so saving once migrates them.
+ */
+const toForm = (d: Record<string, unknown>): InfoForm => {
+  const merged: InfoForm = { contacts: [], bankTransfer: {}, ...INFO_DEFAULTS, ...d }
+  return { ...merged, bankTransfer: withSplitBankFields(merged.bankTransfer) }
+}
+
 const SCALARS = [
   { key: 'nameHe', label: 'שם המוסד' },
   { key: 'tagline', label: 'סלוגן' },
@@ -46,7 +71,7 @@ export default function InfoEditor() {
   useEffect(() => {
     provider
       .getSingleton('info')
-      .then((d) => setForm({ contacts: [], bankTransfer: {}, ...INFO_DEFAULTS, ...d }))
+      .then((d) => setForm(toForm(d)))
   }, [])
 
   if (!form) return <p className="text-ink-muted">טוען…</p>
@@ -79,7 +104,7 @@ export default function InfoEditor() {
   const reset = async () => {
     if (!window.confirm('לשחזר את פרטי המוסד לברירת המחדל?')) return
     const seed = await provider.resetSingleton('info')
-    setForm({ contacts: [], bankTransfer: {}, ...INFO_DEFAULTS, ...seed })
+    setForm(toForm(seed))
     setSaved(true)
   }
 
@@ -183,19 +208,34 @@ export default function InfoEditor() {
 
       {/* Bank transfer */}
       <div className="card mt-5 space-y-4 p-6">
-        <h2 className="font-heading text-lg font-bold">פרטי חשבון בנק להעברה</h2>
-        {[
-          { key: 'accountName', label: 'שם החשבון' },
-          { key: 'bank', label: 'בנק' },
-          { key: 'branch', label: 'סניף' },
-          { key: 'account', label: 'מספר חשבון' },
-          { key: 'iban', label: 'IBAN להעברה מחו"ל (רשות — להעתיק בדיוק כפי שהבנק מסר)' },
-        ].map((f) => (
-          <div key={f.key}>
-            <label className="mb-1 block text-sm font-semibold">{f.label}</label>
-            <input type="text" value={form.bankTransfer[f.key] ?? ''} onChange={(e) => setBank(f.key, e.target.value)} className={fieldCls} />
-          </div>
-        ))}
+        <div>
+          <h2 className="font-heading text-lg font-bold">פרטי חשבון בנק להעברה</h2>
+          <p className="text-sm text-ink-muted">אין צורך בסוגריים או במילה "מס׳" — האתר מסדר את התצוגה לבד.</p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {BANK_FIELDS.map((f) => (
+            <div key={f.key} className={f.half ? '' : 'sm:col-span-2'}>
+              <label className="mb-1 block text-sm font-semibold">{f.label}</label>
+              <input
+                type="text"
+                inputMode={f.numeric ? 'numeric' : undefined}
+                dir={f.numeric || f.key === 'iban' ? 'ltr' : undefined}
+                value={form.bankTransfer[f.key] ?? ''}
+                onChange={(e) => setBank(f.key, e.target.value)}
+                className={`${fieldCls} ${f.numeric ? 'text-right' : ''}`}
+              />
+            </div>
+          ))}
+        </div>
+        {/* What the card on the site will say, as it is typed. */}
+        {(bankLabel(form.bankTransfer) || branchLabel(form.bankTransfer)) && (
+          <p className="rounded-xl bg-gold/10 px-4 py-3 text-sm text-ink">
+            <span className="font-semibold text-gold-hover">תצוגה באתר: </span>
+            {bankLabel(form.bankTransfer) && <>בנק {bankLabel(form.bankTransfer)}</>}
+            {bankLabel(form.bankTransfer) && branchLabel(form.bankTransfer) && ' · '}
+            {branchLabel(form.bankTransfer) && <>סניף {branchLabel(form.bankTransfer)}</>}
+          </p>
+        )}
       </div>
 
       <div className="mt-6 flex items-center gap-3">

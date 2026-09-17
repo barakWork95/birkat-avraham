@@ -52,8 +52,10 @@ export const institutionInfo = {
   // Bank-transfer details for donations
   bankTransfer: {
     accountName: 'חנוך לנער עפ"י דרכו',
-    bank: 'בנק מרכנתיל',
-    branch: '740',
+    bankName: 'מרכנתיל',
+    bankCode: '17',
+    branchName: 'אשדוד',
+    branchNumber: '740',
     account: '86098235',
   },
   // Nedarim Plus mosad id (used by the donation form / service)

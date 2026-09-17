@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { BankIcon, CheckIcon, CopyIcon } from './ui/Icons'
-import { accountDigits, bankDetailsText, compactIban, groupIban } from '../lib/bankDetails'
+import {
+  accountDigits,
+  bankDetailsText,
+  bankLabel,
+  branchLabel,
+  compactIban,
+  groupIban,
+} from '../lib/bankDetails'
 import { copyText } from '../lib/clipboard'
 import type { BankTransfer } from '../types/models'
 
@@ -30,6 +37,9 @@ export default function BankTransferCard({ bank }: { bank: BankTransfer }) {
   const isCopied = (target: CopyTarget) => copied?.target === target && copied.ok
 
   const details = bankDetailsText(bank)
+  // Formatted from the split admin fields: "מרכנתיל (מס׳ 17)", "740 (אשדוד)".
+  const bankText = bankLabel(bank)
+  const branchText = branchLabel(bank)
   const account = accountDigits(bank.account)
   const iban = compactIban(bank.iban)
 
@@ -59,19 +69,17 @@ export default function BankTransferCard({ bank }: { bank: BankTransfer }) {
       </div>
 
       <dl className="mt-3 grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1.5">
-        {bank.bank?.trim() && (
+        {bankText && (
           <>
             <dt className="text-sm text-ink-muted">בנק</dt>
-            <dd className="font-heading text-base font-bold text-ink">{bank.bank.trim()}</dd>
+            <dd className="font-heading text-base font-bold text-ink">{bankText}</dd>
           </>
         )}
-        {bank.branch?.trim() && (
+        {branchText && (
           <>
             <dt className="text-sm text-ink-muted">סניף</dt>
-            {/* LTR as before, right-aligned to sit beside its label. */}
-            <dd dir="ltr" className="text-right font-heading text-base font-bold text-ink">
-              {bank.branch.trim()}
-            </dd>
+            {/* Plain RTL: the number reads first, then the name in parentheses. */}
+            <dd className="font-heading text-base font-bold text-ink">{branchText}</dd>
           </>
         )}
         {account && (

@@ -1,24 +1,83 @@
 import { describe, it, expect } from 'vitest'
-import { accountDigits, bankDetailsText, compactIban, groupIban } from './bankDetails'
+import {
+  accountDigits,
+  bankDetailsText,
+  bankLabel,
+  branchLabel,
+  compactIban,
+  groupIban,
+  withSplitBankFields,
+} from './bankDetails'
+
+describe('bank and branch labels', () => {
+  it('formats the split fields', () => {
+    const bank = { bankName: 'מרכנתיל', bankCode: '17', branchName: 'אשדוד', branchNumber: '740' }
+    expect(bankLabel(bank)).toBe('מרכנתיל (מס׳ 17)')
+    expect(branchLabel(bank)).toBe('740 (אשדוד)')
+  })
+
+  it('shows whichever half is filled in when the other is empty', () => {
+    expect(bankLabel({ bankName: ' מרכנתיל ', bankCode: '' })).toBe('מרכנתיל')
+    expect(bankLabel({ bankName: '', bankCode: '17' })).toBe('מס׳ 17')
+    expect(branchLabel({ branchName: 'אשדוד', branchNumber: '' })).toBe('אשדוד')
+    expect(branchLabel({ branchName: '', branchNumber: '740' })).toBe('740')
+    expect(bankLabel({ bankName: '', bankCode: '' })).toBe('')
+  })
+
+  it('reads the free text saved before the split (the live data)', () => {
+    const live = { bank: 'מרכנתיל (מס׳ 17)', branch: ' (אשדוד) 740' }
+    expect(bankLabel(live)).toBe('מרכנתיל (מס׳ 17)')
+    expect(branchLabel(live)).toBe('740 (אשדוד)')
+    expect(withSplitBankFields(live)).toMatchObject({
+      bankName: 'מרכנתיל',
+      bankCode: '17',
+      branchName: 'אשדוד',
+      branchNumber: '740',
+    })
+  })
+
+  it('parses other legacy spellings', () => {
+    expect(withSplitBankFields({ bank: "בנק מרכנתיל (מס' 17)", branch: '740 (אשדוד)' })).toMatchObject({
+      bankName: 'מרכנתיל',
+      bankCode: '17',
+      branchName: 'אשדוד',
+      branchNumber: '740',
+    })
+    expect(withSplitBankFields({ bank: 'בנק מרכנתיל', branch: '740' })).toMatchObject({
+      bankName: 'מרכנתיל',
+      bankCode: '',
+      branchName: '',
+      branchNumber: '740',
+    })
+  })
+
+  it('ignores the legacy text once a split field was saved — even when cleared', () => {
+    const saved = { bank: 'מרכנתיל (מס׳ 17)', branch: '740', bankName: 'לאומי', bankCode: '10', branchName: '', branchNumber: '' }
+    expect(bankLabel(saved)).toBe('לאומי (מס׳ 10)')
+    expect(branchLabel(saved)).toBe('')
+  })
+})
 
 describe('bankDetailsText', () => {
-  it('lists every detail in order, trimmed, including the account name', () => {
+  it('lists every detail in order, formatted and trimmed, including the account name', () => {
     expect(
       bankDetailsText({
         accountName: 'חנוך לנער עפ"י דרכו',
-        bank: 'מרכנתיל (מס׳ 17)',
-        branch: ' (אשדוד) 740',
+        bankName: 'מרכנתיל',
+        bankCode: '17',
+        branchName: 'אשדוד',
+        branchNumber: '740',
         account: '86098235',
       }),
     ).toBe(
-      ['שם החשבון: חנוך לנער עפ"י דרכו', 'בנק: מרכנתיל (מס׳ 17)', 'סניף: (אשדוד) 740', 'מספר חשבון: 86098235'].join(
+      ['שם החשבון: חנוך לנער עפ"י דרכו', 'בנק: מרכנתיל (מס׳ 17)', 'סניף: 740 (אשדוד)', 'מספר חשבון: 86098235'].join(
         '\n',
       ),
     )
   })
 
   it('leaves out empty details and compacts the IBAN', () => {
-    expect(bankDetailsText({ bank: 'מרכנתיל', branch: '  ', account: '123', iban: 'il62 0108 0000' })).toBe(
+    expect(bankDetailsText({ bankName: 'מרכנתיל', branchName: '  ', account: '123', iban: 'il62 0108 0000' })).toBe(
       'בנק: מרכנתיל\nמספר חשבון: 123\nIBAN: IL6201080000',
     )
   })
