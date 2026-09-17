@@ -7,6 +7,7 @@ import type { InstitutionInfo } from '../types/models'
  * hides that line — takes precedence (see useInfo).
  */
 export const INFO_DEFAULTS: Partial<InstitutionInfo> = {
+  secondaryPhone: '052-782-6600',
   amutaName: 'חנוך לנער עפ"י דרכו',
   amutaNumber: '5806435',
   taxNotice: 'למוסד אישור מס הכנסה לפי סעיף 46 לפקודה',

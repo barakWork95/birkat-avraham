@@ -2,6 +2,7 @@ import { forwardRef } from 'react'
 import SectionTitle from './ui/SectionTitle'
 import ImpactCarousel from './ImpactCarousel'
 import DonationWidget from './DonationWidget'
+import BankTransferCard from './BankTransferCard'
 import { useInfo } from '../hooks/useInfo'
 import type { BankTransfer } from '../types/models'
 import { useSectionText } from '../hooks/useSectionText'
@@ -65,26 +66,7 @@ const DonationSection = forwardRef<HTMLElement>(function DonationSection(_props,
                 full width under them (it needs the width for its text). On a
                 phone they go bank → PushCoins → QR, the QR being least useful there. */}
             <div className="order-3 mx-auto grid w-full max-w-3xl gap-4 sm:grid-cols-[1fr_auto] lg:max-w-none">
-              <div className="rounded-2xl border border-gold/25 bg-cream px-6 py-5">
-                {/* A row at md (full width); stacked again at lg, where it shares half the page with the QR. */}
-                <div className="flex h-full flex-col items-center justify-center gap-x-8 gap-y-2 text-center md:flex-row md:justify-between md:text-right lg:flex-col lg:items-start lg:justify-center">
-                  <h3 className="font-heading text-lg font-bold text-ink">להעברה בנקאית</h3>
-                  <dl className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm lg:justify-start">
-                    <div className="flex items-baseline gap-1.5">
-                      <dt className="text-ink-muted">בנק</dt>
-                      <dd className="font-semibold text-ink">{bank.bank}</dd>
-                    </div>
-                    <div className="flex items-baseline gap-1.5">
-                      <dt className="text-ink-muted">סניף</dt>
-                      <dd className="font-semibold text-ink" dir="ltr">{bank.branch}</dd>
-                    </div>
-                    <div className="flex items-baseline gap-1.5">
-                      <dt className="text-ink-muted">חשבון</dt>
-                      <dd className="font-semibold text-ink" dir="ltr">{bank.account}</dd>
-                    </div>
-                  </dl>
-                </div>
-              </div>
+              <BankTransferCard bank={bank} />
 
               {showPushcoins && (
                 <div className="rounded-2xl border border-gold/25 bg-cream px-6 py-5 sm:col-span-2 lg:py-4">
@@ -123,7 +105,7 @@ const DonationSection = forwardRef<HTMLElement>(function DonationSection(_props,
               <div
                 // Explicitly into row 1 beside the bank card: it comes after PushCoins
                 // in the DOM (for the phone order), so auto-placement would push it down.
-                className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-gold/25 bg-cream px-6 py-5 text-center sm:col-start-2 sm:row-start-1"
+                className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-gold/25 bg-cream px-6 py-5 text-center sm:col-start-2 sm:row-start-1 lg:max-xl:px-4"
               >
                 <picture>
                   <source srcSet="/qr-code.svg" type="image/svg+xml" />

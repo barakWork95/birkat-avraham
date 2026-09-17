@@ -139,6 +139,8 @@ export interface BankTransfer {
   bank?: string
   branch?: string
   account?: string
+  /** Optional, for transfers from abroad — entered exactly as the bank issued it. */
+  iban?: string
 }
 
 export interface InstitutionInfo {
@@ -151,6 +153,8 @@ export interface InstitutionInfo {
   city?: string
   mapQuery?: string
   phone?: string
+  /** A second number shown under `phone` in the footer only. */
+  secondaryPhone?: string
   contacts?: InfoContact[]
   whatsappGroup?: string
   kollelEmail?: string

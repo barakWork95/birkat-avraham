@@ -33,6 +33,7 @@ const SCALARS = [
   { key: 'address', label: 'כתובת' },
   { key: 'mapQuery', label: 'כתובת לחיפוש במפה' },
   { key: 'phone', label: 'טלפון ראשי' },
+  { key: 'secondaryPhone', label: 'טלפון נוסף (בתחתית האתר בלבד)' },
   { key: 'kollelEmail', label: 'אימייל הכולל' },
   { key: 'whatsappGroup', label: 'קישור קבוצת וואטסאפ' },
   { key: 'nedarimMosadId', label: 'מזהה מוסד נדרים פלוס' },
@@ -188,6 +189,7 @@ export default function InfoEditor() {
           { key: 'bank', label: 'בנק' },
           { key: 'branch', label: 'סניף' },
           { key: 'account', label: 'מספר חשבון' },
+          { key: 'iban', label: 'IBAN להעברה מחו"ל (רשות — להעתיק בדיוק כפי שהבנק מסר)' },
         ].map((f) => (
           <div key={f.key}>
             <label className="mb-1 block text-sm font-semibold">{f.label}</label>

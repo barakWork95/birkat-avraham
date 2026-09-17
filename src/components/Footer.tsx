@@ -1,5 +1,6 @@
 import { PhoneIcon, WhatsAppIcon, PinIcon, HeartIcon, MailIcon } from './ui/Icons'
 import { useInfo } from '../hooks/useInfo'
+import { telHref } from '../lib/phone'
 import { useOptionalSections } from '../hooks/useOptionalSections'
 import { useSectionText } from '../hooks/useSectionText'
 
@@ -78,12 +79,15 @@ export default function Footer({ onDonate }: FooterProps) {
               <PinIcon className="h-4 w-4 text-gold-light" />
               <span className="text-white/70">{info.address}</span>
             </li>
-            {info.phone && (
-              <li className="flex items-center gap-2">
-                <PhoneIcon className="h-4 w-4 text-gold-light" />
-                <a href={`tel:${info.phone.replace(/\D/g, '')}`} dir="ltr" className="text-white/70 hover:text-gold-light">{info.phone}</a>
-              </li>
-            )}
+            {/* Main number, then the footer-only second one (not listed under "בואו לבקר"). */}
+            {[info.phone, info.secondaryPhone]
+              .filter((phone): phone is string => Boolean(phone?.trim()))
+              .map((phone, i) => (
+                <li key={`${i}:${phone}`} className="flex items-center gap-2">
+                  <PhoneIcon className="h-4 w-4 text-gold-light" />
+                  <a href={telHref(phone)} dir="ltr" className="text-white/70 hover:text-gold-light">{phone}</a>
+                </li>
+              ))}
             {info.kollelEmail && (
               <li className="flex items-center gap-2">
                 <MailIcon className="h-4 w-4 text-gold-light" />

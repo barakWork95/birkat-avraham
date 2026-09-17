@@ -82,6 +82,28 @@ export const HeartIcon = ({ className = 'h-5 w-5', filled = false }: ToggleIconP
   </svg>
 )
 
+/** A bank building — for the bank-transfer card. */
+export const BankIcon = ({ className = 'h-5 w-5' }: IconProps) => (
+  <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <path d="M3 9.5L12 4l9 5.5M4.5 10h15M4 20h16M6 10v7M10 10v7M14 10v7M18 10v7" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
+/** Two overlapping sheets — copy to clipboard. */
+export const CopyIcon = ({ className = 'h-4 w-4' }: IconProps) => (
+  <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <rect x="9" y="9" width="11" height="11" rx="2" />
+    <path d="M15 9V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7a2 2 0 002 2h3" strokeLinecap="round" />
+  </svg>
+)
+
+/** A plain tick — confirmation feedback. */
+export const CheckIcon = ({ className = 'h-4 w-4' }: IconProps) => (
+  <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+    <path d="M5 12.5l4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
 /** A coin — for the digital tzedakah box. */
 export const CoinIcon = ({ className = 'h-5 w-5' }: IconProps) => (
   <svg className={`${base} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
